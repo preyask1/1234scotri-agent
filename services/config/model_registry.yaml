@@ -1,0 +1,17 @@
+# Machine-readable twin of ../../docs/ai/model-registry.md — that file is the human/LLM-facing
+# source of truth; this file is what services/ code actually loads. KEEP THESE TWO IN SYNC BY HAND,
+# same convention as repo_registry.yaml.
+#
+# Read by app/container.py (`agent_runtime`), which passes `default.model` to every engagement as
+# ClaudeAgentOptions.model. One engagement is one Agent SDK query() call, so there is no per-stage
+# model switch.
+#
+# Decided 2026-10-07 (OPEN_ITEMS.md #4): one model for everything, Claude Sonnet 5.5. No per-stage
+# rows and no second vendor. The loader still accepts a `stages:` list (each entry: stage_key,
+# vendor, model, secret_name) and falls back to `default` for any stage without one, so a per-stage
+# override stays a config edit if that decision is ever revisited.
+
+default:
+  vendor: anthropic
+  model: claude-sonnet-5-5
+  secret_name: ANTHROPIC_API_KEY

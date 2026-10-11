@@ -1,0 +1,100 @@
+# Machine-readable twin of ../../docs/ai/repo-registry.md — that file is the human/LLM-facing
+# source of truth; this file is what services/ code actually loads. Keep the two in sync by hand; if
+# they drift, docs/ai/repo-registry.md wins. The platform (Acme Retail) is fictional: replace these
+# rows with your own ADO orgs, projects, repos and branches.
+#
+# repo_key: an internal short name skills/services use to refer to a repo family (not necessarily
+# the ADO repo name itself).
+
+repos:
+  # ── Legacy Fabric (still live, dual-support during migration) ────────────────────────────
+  - repo_key: fabric_core
+    ado_repo: Acme-PowerBIReports
+    ado_org: AcmeFabricReports
+    ado_project: AcmeFabricReports
+    environments:
+      - environment: prod
+        branch: main
+        mirrored: true
+      - environment: prod          # hq_live is a second, independent live content set, not
+        branch: hq_live      # a variant of `main` — both are live, so both are mirrored.
+        mirrored: true
+
+  - repo_key: fabric_secondary
+    ado_repo: AcmeFabricReports
+    ado_org: AcmeFabricReports
+    ado_project: AcmeFabricReports
+    environments:
+      - environment: prod
+        branch: regional_main
+        mirrored: true
+      - environment: uat
+        branch: main
+        mirrored: false
+
+  # ── New Fabric structure (live alongside legacy) ─────────────────────────────────────────
+  # `main` and `dev` only; add a uat row when a uat branch exists.
+  - repo_key: fabric_hq
+    ado_repo: PowerBI_Acme_HQ
+    ado_org: acme-data
+    ado_project: Data-Platform
+    environments:
+      - environment: prod
+        branch: main
+        mirrored: true
+      - environment: dev
+        branch: dev
+        mirrored: false
+
+  - repo_key: fabric_stores
+    ado_repo: PowerBI_Acme_Field
+    ado_org: acme-data
+    ado_project: Data-Platform
+    environments:
+      - environment: prod
+        branch: main
+        mirrored: true
+      - environment: dev
+        branch: dev
+        mirrored: false
+
+  - repo_key: fabric_regional
+    ado_repo: PowerBI_Acme_Regional
+    ado_org: acme-data
+    ado_project: Data-Platform
+    environments:
+      - environment: prod
+        branch: main
+        mirrored: true
+      - environment: dev
+        branch: dev
+        mirrored: false
+
+  # ── ADF (two SEPARATE repos per environment, not branches of one repo — no UAT) ──────────
+  - repo_key: adf
+    ado_org: acme-data
+    ado_project: Data-Platform
+    environments:
+      - environment: prod
+        ado_repo: AcmeAdfProd
+        branch: main
+        mirrored: true
+      - environment: dev
+        ado_repo: Data-Platform   # same name as the ADO project
+        branch: main
+        mirrored: false
+
+  # ── Databricks (one repo, two branches, no UAT) ───────────────────────────────────────────
+  - repo_key: databricks
+    ado_repo: Acme_Databricks_WS
+    ado_org: acme-data
+    ado_project: Data-Platform
+    environments:
+      - environment: prod
+        branch: release_main
+        mirrored: true
+        catalog: acme_prod
+      - environment: dev
+        branch: develop_main
+        mirrored: false
+        catalog: acme_dev
