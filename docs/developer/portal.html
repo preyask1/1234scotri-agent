@@ -341,7 +341,7 @@ footer.foot { max-width: 880px; margin-top: 50px; padding-top: 20px; border-top:
 <div class="hero" id="top">
   <div class="eyebrow">Developer portal</div>
   <h1>Build on Scotri</h1>
-  <p class="lede">Scotri is a read-only analysis agent for Acme's ADF → Databricks → Power BI/Fabric platform. Send it a Jira key or a question. It traces the problem across all four product repos and the live data, and returns a verdict, an impact analysis and a handoff document. You can reach the same engine over HTTP or over MCP.</p>
+  <p class="lede">Scotri is a read-only analysis agent for an ADF → Databricks → Power BI/Fabric platform. Send it a Jira key or a question. It traces the problem across every product repo and the live data, and returns a verdict, an impact analysis and a handoff document. You can reach the same engine over HTTP or over MCP.</p>
 
   <div class="transports">
     <a class="transport" href="#ep-chat">
@@ -389,14 +389,14 @@ footer.foot { max-width: 880px; margin-top: 50px; padding-top: 20px; border-top:
 <pre data-tpl><span class="tok-c"># 1. Start an engagement from a Jira ticket</span>
 JOB=$(curl -s -X POST {{API}}/v1/engagements \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"ticket_key":"ACME-2041"}' | jq -r .job_id)
+  -d '{"ticket_key":"PROJ-2041"}' | jq -r .job_id)
 
 <span class="tok-c"># 2. Poll until status is terminal (succeeded | failed | cancelled | incomplete)</span>
 curl -s {{API}}/v1/engagements/$JOB -H "Authorization: Bearer $TOKEN" | jq .status
 
 <span class="tok-c"># 3. List the deliverables and read the handoff document</span>
 curl -s {{API}}/v1/engagements/$JOB/files -H "Authorization: Bearer $TOKEN" | jq -r '.files[].path'
-curl -s {{API}}/v1/engagements/$JOB/files/scratch/ACME-2041-handoff.md -H "Authorization: Bearer $TOKEN"</pre>
+curl -s {{API}}/v1/engagements/$JOB/files/scratch/PROJ-2041-handoff.md -H "Authorization: Bearer $TOKEN"</pre>
 <pre data-tpl hidden><span class="tok-k">import</span> os, time, requests
 
 API = <span class="tok-s">"{{API}}"</span>
@@ -427,7 +427,7 @@ requests.post(f<span class="tok-s">"{API}/v1/chat"</span>, headers=H, json={
     <span class="tok-k">async with</span> streamable_http_client(<span class="tok-s">"{{MCP}}/mcp"</span>, http_client=http) <span class="tok-k">as</span> (read, write), \
                ClientSession(read, write) <span class="tok-k">as</span> session:
         <span class="tok-k">await</span> session.initialize()
-        started = <span class="tok-k">await</span> session.call_tool(<span class="tok-s">"scotri_start"</span>, {<span class="tok-s">"prompt"</span>: <span class="tok-s">"ACME-2041"</span>})
+        started = <span class="tok-k">await</span> session.call_tool(<span class="tok-s">"scotri_start"</span>, {<span class="tok-s">"prompt"</span>: <span class="tok-s">"PROJ-2041"</span>})
         print(started.structuredContent)          <span class="tok-c"># {"job_id": "…"}</span>
         job_id = started.structuredContent[<span class="tok-s">"job_id"</span>]
         <span class="tok-k">while True</span>:
@@ -772,28 +772,28 @@ uvicorn app.mcp_server:asgi_app --host 0.0.0.0 --port 8100</pre></div>
         ["conversation_id", "string", false, "Groups this turn with earlier ones. A conversation owned by another principal returns `403`."],
         ["attachment_ids", "string[]", false, "Up to 10 `upload_id`s from `POST /v1/uploads`. Only your own uploads: someone else's is `403`, an unknown one `404`."],
       ],
-      sample: { prompt: "ACME-2041" },
+      sample: { prompt: "PROJ-2041" },
       res: { job_id: "9f1c…", resumed: false, conversation_id: "b27a…" } },
 
     { id: "ep-chat-get", m: "GET", p: "/v1/chat/{job_id}", t: "Poll a chat job",
       access: "Any authenticated",
       d: "Any authenticated caller can poll any `job_id`. Steps, files and full history are restricted to the owner. While it runs, `progress` shows the stage it has reached (see Job lifecycle). Returns `404` once the job has expired from the 24-hour store. `diagrams` lists every fenced mermaid block in `result` (see Diagrams in a result), `[]` when there are none.",
-      res: { job_id: "9f1c…", status: "succeeded", result: "…final answer text…", diagrams: [], error: null, progress: { phase: "handoff", phase_label: "Writing the handoff document", phases_seen: ["starting", "intake", "verdict", "impact", "plan", "testing", "handoff"], tool_calls: 61, started_at: "2026-10-04T09:00:02+00:00", last_activity_at: "2026-10-04T09:14:40+00:00", elapsed_seconds: 878 }, prompt: "ACME-2041" } },
+      res: { job_id: "9f1c…", status: "succeeded", result: "…final answer text…", diagrams: [], error: null, progress: { phase: "handoff", phase_label: "Writing the handoff document", phases_seen: ["starting", "intake", "verdict", "impact", "plan", "testing", "handoff"], tool_calls: 61, started_at: "2026-10-04T09:00:02+00:00", last_activity_at: "2026-10-04T09:14:40+00:00", elapsed_seconds: 878 }, prompt: "PROJ-2041" } },
 
     { id: "ep-engagements", m: "POST", p: "/v1/engagements", t: "Start from a Jira ticket", s: 202,
       access: "Any authenticated",
       d: "The same engine with a narrower input: `ticket_key` becomes the prompt. It also checks the presence-claim store. If another user is already investigating the ticket, the response includes an advisory `collision_notice`. The run is never blocked.",
       body: [
-        ["ticket_key", "string", true, "For example `ACME-2041`"],
+        ["ticket_key", "string", true, "For example `PROJ-2041`"],
         ["attachment_ids", "string[]", false, "As on `POST /v1/chat`"],
       ],
-      sample: { ticket_key: "ACME-2041" },
-      res: { job_id: "9f1c…", conversation_id: "b27a…", collision_notice: "ACME-2041 is already being investigated by … (only when there is one)" } },
+      sample: { ticket_key: "PROJ-2041" },
+      res: { job_id: "9f1c…", conversation_id: "b27a…", collision_notice: "PROJ-2041 is already being investigated by … (only when there is one)" } },
 
     { id: "ep-engagement-get", m: "GET", p: "/v1/engagements/{job_id}", t: "Poll an engagement",
       access: "Any authenticated",
       d: "Same as polling a chat job, except the response has `ticket_key` instead of `prompt`. Chat jobs and engagements share one job store, so either route works for either kind of job.",
-      res: { job_id: "9f1c…", ticket_key: "ACME-2041", status: "running", result: null, diagrams: [], error: null, progress: { phase: "intake", phase_label: "Reading the request", phases_seen: ["starting", "intake"], tool_calls: 4, started_at: "2026-10-04T09:00:02+00:00", last_activity_at: "2026-10-04T09:00:31+00:00", elapsed_seconds: 31 } } },
+      res: { job_id: "9f1c…", ticket_key: "PROJ-2041", status: "running", result: null, diagrams: [], error: null, progress: { phase: "intake", phase_label: "Reading the request", phases_seen: ["starting", "intake"], tool_calls: 4, started_at: "2026-10-04T09:00:02+00:00", last_activity_at: "2026-10-04T09:00:31+00:00", elapsed_seconds: 31 } } },
 
     { id: "ep-cancel", m: "POST", p: "/v1/chat/{job_id}/cancel", alt: "/v1/engagements/{job_id}/cancel", t: "Cancel a job",
       access: "Owner only",
@@ -804,13 +804,13 @@ uvicorn app.mcp_server:asgi_app --host 0.0.0.0 --port 8100</pre></div>
       access: "Owner only",
       d: "Lists every tool call in order with a truncated, secret-redacted input and result preview, plus the agent's narration. It works while the job is still running as well as afterwards. Restricted to the owner because steps contain queries and file contents. Returns `404` if the job never got a session.",
       res: { job_id: "9f1c…", status: "running", steps: [
-        { kind: "tool_call", timestamp: "2026-10-04T09:12:04Z", tool: "Bash", input_summary: "app.cli jira-get-issue --key ACME-2041", result_preview: "{\"ok\": true, …}" },
+        { kind: "tool_call", timestamp: "2026-10-04T09:12:04Z", tool: "Bash", input_summary: "app.cli jira-get-issue --key PROJ-2041", result_preview: "{\"ok\": true, …}" },
         { kind: "message", timestamp: "2026-10-04T09:12:09Z", text: "The ticket is a Bug; tracing the reported figure first." } ] } },
 
     { id: "ep-files", m: "GET", p: "/v1/engagements/{job_id}/files", alt: "/v1/chat/{job_id}/files", t: "Deliverables a run produced",
       access: "Owner · file roles",
       d: "The markdown deliverables the agent wrote under `scratch/`, `proposals/` or `investigations/`. Each is a redacted copy taken when the run ended, so it doesn't change if the ticket is run again. Partial work from incomplete, failed or cancelled runs is included.",
-      res: { job_id: "9f1c…", count: 1, files: [ { job_id: "9f1c…", path: "scratch/ACME-2041-handoff.md", name: "ACME-2041-handoff.md", size: 8123, content_type: "text/markdown", created_at: "2026-10-04T09:31:00+00:00", url: "/v1/engagements/9f1c…/files/scratch/ACME-2041-handoff.md" } ] } },
+      res: { job_id: "9f1c…", count: 1, files: [ { job_id: "9f1c…", path: "scratch/PROJ-2041-handoff.md", name: "PROJ-2041-handoff.md", size: 8123, content_type: "text/markdown", created_at: "2026-10-04T09:31:00+00:00", url: "/v1/engagements/9f1c…/files/scratch/PROJ-2041-handoff.md" } ] } },
 
     { id: "ep-file", m: "GET", p: "/v1/engagements/{job_id}/files/{path}", alt: "/v1/chat/{job_id}/files/{path}", t: "One file's content",
       access: "Owner · file roles",
@@ -844,13 +844,13 @@ uvicorn app.mcp_server:asgi_app --host 0.0.0.0 --port 8100</pre></div>
       access: "Self only",
       d: "The caller's own durable history, newest first. It outlasts the 24-hour job store. `verdict` is one of `confirmed_bug`, `not_a_bug`, `inconclusive`, `story` or `question`, or `null`.",
       query: [["limit", "int", "50", "Clamped to 1–200"]],
-      res: { subject: "<subject>", count: 1, engagements: [ { job_id: "9f1c…", conversation_id: "b27a…", prompt: "ACME-2041", status: "succeeded", created_at: "…", review_outcome: "unreviewed", verdict: "confirmed_bug", reviewable: true } ] } },
+      res: { subject: "<subject>", count: 1, engagements: [ { job_id: "9f1c…", conversation_id: "b27a…", prompt: "PROJ-2041", status: "succeeded", created_at: "…", review_outcome: "unreviewed", verdict: "confirmed_bug", reviewable: true } ] } },
 
     { id: "ep-learnings", m: "GET", p: "/v1/learnings", t: "Browse learnings",
       access: "Self · team needs a learnings-reader role",
       d: "The learnings past investigations recorded: symptom, what was checked, root cause and takeaways, never query results. `scope=mine` (the default) lists learnings from your own runs. `scope=team` lists everyone's, including service runs, and needs a role in `LEARNINGS_READER_ROLES` (empty by default, so 403 until an admin names one). With `q` results are ranked by relevance, otherwise newest first. The agent's own `retrieve` always searches every learning; this only limits what people browse.",
       query: [["scope", "string", "mine", "`mine` or `team`"], ["q", "string", "", "Search text"], ["verdict", "string", "", "`confirmed_bug`, `not_a_bug`, `inconclusive`, `story` or `question`"], ["limit", "int", "50", "Clamped to 1–200"]],
-      res: { scope: "mine", count: 1, learnings: [ { job_id: "9f1c…", ticket_key: "ACME-2041", title: "…", verdict: "confirmed_bug", root_cause_category: "report-visual", takeaways: ["…"], entities: ["…"], investigated_by: "…", created_at: "…", review_outcome: "unreviewed" } ] } },
+      res: { scope: "mine", count: 1, learnings: [ { job_id: "9f1c…", ticket_key: "PROJ-2041", title: "…", verdict: "confirmed_bug", root_cause_category: "report-visual", takeaways: ["…"], entities: ["…"], investigated_by: "…", created_at: "…", review_outcome: "unreviewed" } ] } },
 
     { id: "ep-learning", m: "GET", p: "/v1/learnings/{job_id}", t: "One learning",
       access: "Owner · learnings reader",
@@ -924,7 +924,7 @@ uvicorn app.mcp_server:asgi_app --host 0.0.0.0 --port 8100</pre></div>
       // try-it console
       html += `<details class="try"><summary>Try it</summary><div class="try-body" data-ep="${e.id}">`;
       if (params.length || e.query) {
-        html += `<div class="try-row">${params.map((p) => `<div class="field"><label>${p}</label><input type="text" class="mono" data-param="${p}" spellcheck="false" placeholder="${p === "path" ? "scratch/ACME-2041-handoff.md" : ""}"></div>`).join("")}${
+        html += `<div class="try-row">${params.map((p) => `<div class="field"><label>${p}</label><input type="text" class="mono" data-param="${p}" spellcheck="false" placeholder="${p === "path" ? "scratch/PROJ-2041-handoff.md" : ""}"></div>`).join("")}${
           (e.query || []).map(([n, , def]) => `<div class="field"><label>?${n}</label><input type="text" class="mono" data-query="${n}" value="${def === "false" ? "" : def}" spellcheck="false"></div>`).join("")}</div>`;
       }
       if (e.body) html += `<div class="field"><label>Request body (JSON)</label><textarea data-body spellcheck="false">${esc(JSON.stringify(e.sample, null, 2))}</textarea></div>`;

@@ -103,7 +103,7 @@ def _require_id(value: str, what: str) -> str:
 class SharedFile:
     job_id: str
     path: str
-    """Workspace-relative, e.g. "scratch/ACME-2107-handoff.md" — the name the agent and the docs use."""
+    """Workspace-relative, e.g. "scratch/PROJ-2107-handoff.md" — the name the agent and the docs use."""
     size: int
     content_type: str
     created_at: datetime

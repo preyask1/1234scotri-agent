@@ -68,5 +68,5 @@ grouping, the `Wave<N>` build order and the SCD2 merge pattern are read directly
   sync time, since the mirror can lag the true HEAD.
 
 ## Where to go next
-- Query gold (SDK, service-principal auth, through the governor) → [`fabric-tool-access.md`](fabric-tool-access.md)
+- Query gold (SDK, service-principal auth, through the governor) → [`fabric-tool-access.md`](../fabric-tool-access.md)
 - Gold table → producing notebook → consuming Fabric model → [`lineage-map.md`](lineage-map.md)

@@ -1,4 +1,4 @@
-"""Port for the repo registry (docs/ai/repo-registry.md) — the single source of truth for which
+"""Port for the repo registry (docs/ai/client/repo-registry.md) — the single source of truth for which
 repos/branches exist and how each is read. Kept as a port (not a plain domain function) because it's
 external, changing state: a config file that's actively edited as the platform migrates, not a fixed
 business rule."""

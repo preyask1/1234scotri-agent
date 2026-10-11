@@ -21,7 +21,7 @@ def _normalize_path(path: str) -> str:
     pass a leading "/" themselves — Git Bash/MSYS silently rewrites a bare "/" (or any argument
     that LOOKS like an absolute POSIX path) into a Windows filesystem path before Python ever sees
     it. Confirmed 2026-09-18. So the convention is: callers pass "" for root or a path with no
-    leading slash ("Insights/Sales/..."), and this function adds the "/" ADO's API actually wants,
+    leading slash ("Sales/Model.SemanticModel/..."), and this function adds the "/" ADO's API actually wants,
     internally, where no shell can mangle it."""
     stripped = path.lstrip("/\\")
     return "/" + stripped if stripped else "/"

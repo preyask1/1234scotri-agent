@@ -275,7 +275,7 @@ def scotri_list_files(job_id: str, ctx: Context) -> dict:
 @mcp.tool()
 @_as_tool_error
 def scotri_get_file(job_id: str, path: str, ctx: Context) -> dict:
-    """Read one file from scotri_list_files, by its `path` (e.g. "scratch/ACME-2107-handoff.md").
+    """Read one file from scotri_list_files, by its `path` (e.g. "scratch/PROJ-2107-handoff.md").
     Returns the full text. To find the handoff document, look for a path ending in "-handoff.md".
     """
     principal = _authenticate(ctx)

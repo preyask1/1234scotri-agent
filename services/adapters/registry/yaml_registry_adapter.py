@@ -1,7 +1,7 @@
 """Loads config/repo_registry.yaml and implements the RepoRegistry port.
 
 This is the one place YAML parsing happens — nothing in domain/ or ports/ knows the registry is a
-YAML file at all, which is exactly what lets the sync-to-docs/ai/repo-registry.md hand-maintained
+YAML file at all, which is exactly what lets the sync-to-docs/ai/client/repo-registry.md hand-maintained
 duplication (see that file's own header) become a database or an API call later without touching
 anything upstream of this adapter.
 """
@@ -11,6 +11,7 @@ from pathlib import Path
 
 import yaml
 
+from domain.errors import ConfigurationError
 from domain.models import Environment, RepoRef
 
 DEFAULT_REGISTRY_PATH = Path(__file__).resolve().parents[2] / "config" / "repo_registry.yaml"
@@ -25,6 +26,11 @@ class YamlRepoRegistry:
         self._load()
 
     def _load(self) -> None:
+        if not Path(self._path).is_file():
+            raise ConfigurationError(
+                f"{self._path} does not exist. It is generated from client/profile.yaml: run "
+                f"`python -m app.setup render` from services/ (see SETUP.md)."
+            )
         with open(self._path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 

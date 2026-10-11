@@ -301,7 +301,7 @@ class SavedAttachment:
     attachment_id: str
     filename: str
     path: str
-    """Workspace-relative path of what was written, e.g. scratch/jira-attachments/ACME-1/brd.docx.txt."""
+    """Workspace-relative path of what was written, e.g. scratch/jira-attachments/PROJ-1/brd.docx.txt."""
     kind: str
     """"text" (decoded + redacted), "extracted" (Office -> redacted text) or "binary" (PDF/image, as sent)."""
     size: int

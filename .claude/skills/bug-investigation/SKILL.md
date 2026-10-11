@@ -71,9 +71,9 @@ When a 2a chain lands on a Databricks job, or the symptom is a notebook failure.
    `notebook_output`, deeper than ADF's relayed `error.message`. Record the failure text at its hop.
 3. **No Jobs-API grant?** `DESCRIBE HISTORY <table>` / `system.query_history` via `databricks-select`
    still give last-write time and query-level failure history.
-4. **Where the trail goes cold** — Prod workspace `adb-1111111111111111.11` only; a 403 is a missing
-   Jobs-API grant on the SP (not "credential missing"). A chain landing on `adb-2222222222222222` (access
-   pending) still hands off under the same trail-goes-cold rule.
+4. **Where the trail goes cold** — the query workspace only; a 403 is a missing Jobs-API grant on
+   the SP (not "credential missing"). A chain landing on a secondary workspace
+   (`docs/ai/client/client.md`) still hands off under the same trail-goes-cold rule.
 
 ### 2b. Report/dataset refresh symptoms ("why hasn't this report updated")
 

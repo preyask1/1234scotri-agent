@@ -27,6 +27,11 @@ class YamlAdfFactoryRegistry:
         self._load()
 
     def _load(self) -> None:
+        if not Path(self._path).is_file():
+            raise ConfigurationError(
+                f"{self._path} does not exist. It is generated from client/profile.yaml: run "
+                f"`python -m app.setup render` from services/ (see SETUP.md)."
+            )
         with open(self._path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 

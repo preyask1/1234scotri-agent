@@ -10,26 +10,26 @@ re-deriving paths.
 
 ## Repos and branches
 
-Read `docs/ai/repo-registry.md` first, every time; never hardcode a repo, branch or workspace name.
-It lists the legacy `fabric-core`/`fabric-secondary` (still live, in scope), the new
-`PowerBI_Acme_HQ`/`PowerBI_Acme_Field`/`PowerBI_Acme_Regional` (no UAT branch yet), and which
-branches are mirrored vs live-read. It changes as the migration progresses.
+Read `docs/ai/client/repo-registry.md` first, every time; never hardcode a repo, branch or workspace name.
+It lists every Fabric repo (old and new ones during a migration are all in scope), and which
+branches are mirrored vs live-read. If Power BI/Fabric is off for this deployment
+(`docs/ai/client/client.md`), there is nothing to read: say so.
 
 **Which branch:** pick the one the analysis concerns. If the ticket doesn't say, check every
-applicable one. For `fabric_core` that means **both** `main` and `hq_live`: both are live
-and diverge substantially. `hq_live` is not a staging copy or backup of `main`.
+applicable one. A repo key with two mirrored Prod branches (`docs/ai/client/client.md` names them)
+means **both**: both are live and can diverge substantially; neither is a staging copy of the other.
 
 ## Read paths
 
 **No leading `/` in `--path`, ever.** Git Bash/MSYS silently rewrites it into a Windows path and the
 call breaks. Use `""` or omit `--path` for root; otherwise a bare relative path
-(`Insights/Sales/Model.SemanticModel/...`).
+(`Sales/Model.SemanticModel/...`).
 
 **Prod (mirror): `mirror-list` / `mirror-read`.**
-- `--repo-key` is the registry key (e.g. `fabric_core`), not the ADO folder name. The output
+- `--repo-key` is the registry key (from `docs/ai/client/client.md`), not the ADO folder name. The output
   echoes the resolved `repo`/`branch`; confirm it.
 - Pass `--branch` only to pick a non-default branch when a repo key has two for the same
-  environment (`fabric_core`: `main` default, `hq_live`).
+  environment (`docs/ai/client/client.md` gives the default and the `--branch` value for the other).
 - A missing repo/branch/path returns `ok: false, category: not_found`. An empty `[]` means "nothing
   here" only with `ok: true`.
 - The maintenance flag is checked internally. Mid-swap you get `ok: false, category: transient,

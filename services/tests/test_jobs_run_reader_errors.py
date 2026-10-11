@@ -16,7 +16,7 @@ def _map(message, error_code=None):
 def test_does_not_exist_is_not_found_and_says_why():
     err = _map("Job 1000000000000001 does not exist.")
     assert isinstance(err, NotFoundError)
-    assert "adb-2222222222222222" in err.user_message and "does not mean the job or run never existed" in err.user_message
+    assert "another workspace" in err.user_message and "does not mean the job or run never existed" in err.user_message
 
 
 def test_other_categories_are_unchanged():

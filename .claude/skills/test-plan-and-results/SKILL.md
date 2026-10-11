@@ -56,7 +56,7 @@ Read reports only through `report-bindings`, never `visual.json`/`report.json` w
    - **Filters it can't set**: a filter the matching test case needs has no slicer on that page; name
      the field the person must set in the filter pane.
    - **Several copies**: the same report path exists in several trees (legacy and new repos,
-     `hq_live`), sometimes in different layouts. Say which copy the row means.
+     another mirrored branch), sometimes in different layouts. Say which copy the row means.
 
    Then still add candidates (step 2) for any changed table the named report doesn't cover.
 2. **Candidates by changed tables.** Run `report-bindings --table <T> [--table <T2>] --model
@@ -77,7 +77,7 @@ Read reports only through `report-bindings`, never `visual.json`/`report.json` w
 4. **New visuals.** If the change adds a measure or visual that doesn't exist yet, mark the row
    `planned`, cite the implementation-plan step that adds it, and name any existing visual that
    already shows the same base number for a side-by-side.
-5. **Where to validate.** UAT workspace from `docs/ai/repo-registry.md`. The reference is located in
+5. **Where to validate.** UAT workspace from `docs/ai/client/repo-registry.md`. The reference is located in
    the Prod mirror, but UAT isn't read unless the user named UAT. If the repo has no registered UAT
    branch (the new repos today) or the registered one is broken, write `none registered` and name the
    stand-in: Dev workspace for a change still in development, Prod after release. Never invent a UAT

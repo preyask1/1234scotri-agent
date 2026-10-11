@@ -25,17 +25,17 @@ that ships a silent inconsistency across shards.**
 
 ## Scope — every live repo, every time, Prod by default
 
-- Resolve repos/branches from [`/docs/ai/repo-registry.md`](../../../docs/ai/repo-registry.md); never
-  hardcode. Check both the legacy Fabric repos (`fabric-core`, `fabric-secondary`) and the new
-  three-repo structure (`PowerBI_Acme_HQ`, `PowerBI_Acme_Field`, `PowerBI_Acme_Regional`): the
-  old→new mapping is not yet confirmed.
-- **Every live branch:** `fabric-core` `main` and `hq_live` are two independent content
-  sets, not environment variants (~1,300 files only on one, ~3,300 only on the other). `fabric-secondary`
-  serves `regional_main` and `main`. `Insights/` exists in both legacy repos with different regional
-  clones. Checking one branch/repo and calling it done under-reports the blast radius.
-- Prod unless the ticket/user names Dev or UAT (Fabric only; ADF and Databricks have no UAT tier).
+- Resolve repos/branches from [`/docs/ai/client/repo-registry.md`](../../../docs/ai/client/repo-registry.md); never
+  hardcode. Check every repo of each kind: during a migration, old and new Fabric repos are both
+  live and the old→new mapping is not assumed.
+- **Every live branch:** a repo with more than one mirrored Prod branch (`docs/ai/client/client.md`
+  names them) holds independent content sets, not environment variants. The same folder can exist in
+  several repos with different clones. Checking one branch/repo and calling it done under-reports the
+  blast radius.
+- Prod unless the ticket/user names Dev or UAT (only environments the registry lists exist).
   No environment named means Prod; say so. A Dev/UAT read is live, presence-checked first.
-- `adf`/`databricks` via `adf-databricks-read`; Fabric repos via `fabric-read`.
+- ADF and Databricks repos via `adf-databricks-read`; Fabric repos via `fabric-read`. A component
+  that is off for this deployment is out of scope: say so in the work order and skip it.
 - Mirror reads are local disk, so broad text search is cheap once narrowed to the relevant
   folder/model: list/narrow candidates first, then read and search bodies.
 - Corroborate Databricks facts empirically with `databricks-query` alongside the notebook logic. A
@@ -44,7 +44,7 @@ that ships a silent inconsistency across shards.**
 ## Golden rules
 
 1. **Enumerate the blast radius mechanically, never from a doc.** Paste what the reads returned.
-   `docs/ai/areas/*.md` and `docs/ai/lineage-map.md` are orientation, never the instance count.
+   `docs/ai/areas/*.md` and `docs/ai/client/lineage-map.md` are orientation, never the instance count.
 2. **Classify the change layer and check it, not just the DAX.** The business rule often lives in the
    gold layer (join predicate, filter, grouping mapping in a notebook) while the measure is a bare
    `SUM`. Read the notebook; corroborate with `databricks-query`.
@@ -66,7 +66,7 @@ that ships a silent inconsistency across shards.**
    grouping, `MERGE INTO`/SCD2 pattern) via `adf-databricks-read`, plus live schema, row count and a
    sample via `databricks-query`. State both; flag disagreement.
 5. **Fabric consumers (every repo, every live branch).** List semantic-model folders, narrow to models
-   plausibly related (per [`/docs/ai/fabric-conventions.md`](../../../docs/ai/fabric-conventions.md)'s
+   plausibly related (per [`/docs/ai/client/fabric-conventions.md`](../../../docs/ai/client/fabric-conventions.md)'s
    folder map), read each candidate's `definition/tables/*.tmdl` and check the M partition for the gold
    table. Record per hit: `repo · branch · model path · table · M-partition style
    (parameterised/hardcoded) · measures referencing it`.
@@ -105,8 +105,8 @@ that ships a silent inconsistency across shards.**
 ## Checklist before calling it done
 
 - [ ] Presence checked before starting (and before any Dev/UAT read)
-- [ ] Scope resolved from `repo-registry.md`; every live repo and branch checked (both
-      `fabric-core` and both `fabric-secondary` branches, plus any live new-structure repo)
+- [ ] Scope resolved from `repo-registry.md`; every live repo and every mirrored branch checked
+      (a repo with two Prod branches counts twice)
 - [ ] Prod by default; Dev/UAT only if explicitly requested
 - [ ] Every finding cites its path/branch/query and read path (mirror/live)
 - [ ] Notebook logic and live Databricks facts both captured; disagreement flagged

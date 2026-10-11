@@ -118,7 +118,7 @@ Once a job is finished, `elapsed_seconds` stops at the run's last activity inste
 every poll. A run is also capped at `ENGAGEMENT_MAX_TURNS` agent turns (150; `0` = no limit) and,
 if set, `ENGAGEMENT_MAX_BUDGET_USD`; hitting either ends it as `incomplete`.
 
-**Answer checks.** Before a run is marked `succeeded`, the large numbers, `acme_*` table names and file
+**Answer checks.** Before a run is marked `succeeded`, the large numbers, fully-qualified table names and file
 names in its answer are compared with what the run actually read. Anything found nowhere goes back to
 the agent once, in the same session, to verify, label as derived or remove, and its reply becomes the
 `result`. If that turn can't finish, the original answer is kept with a note listing the unsupported
@@ -212,7 +212,7 @@ When Scotri is busy: `"queued": true, "queue_position": 2`. Refused at the door:
 ```bash
 curl -X POST http://localhost:8000/v1/chat \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"prompt": "ACME-2041"}'
+  -d '{"prompt": "PROJ-2041"}'
 ```
 
 ---
@@ -234,7 +234,7 @@ owner-only.
   "cancel_reason": null,
   "queue": null,
   "progress": { "phase": "handoff", "…": "see Progress while it runs" },
-  "prompt": "ACME-2041"
+  "prompt": "PROJ-2041"
 }
 ```
 
@@ -287,7 +287,7 @@ A narrower input onto the same engine. `ticket_key` becomes the prompt.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `ticket_key` | string | yes | e.g. `ACME-2041` |
+| `ticket_key` | string | yes | e.g. `PROJ-2041` |
 | `attachment_ids` | string[] | no | As on `POST /v1/chat` |
 
 The endpoint also checks the presence-claim store. Presence is advisory and never blocks the run. If
@@ -300,7 +300,7 @@ registers their own claim.
 {
   "job_id": "9f1c…",
   "conversation_id": "b27a…",
-  "collision_notice": "ACME-2041 is already being investigated by … (optional)"
+  "collision_notice": "PROJ-2041 is already being investigated by … (optional)"
 }
 ```
 
@@ -311,7 +311,7 @@ registers their own claim.
 Same as polling a chat job, but returns `ticket_key` instead of `prompt`.
 
 ```json
-{"job_id": "9f1c…", "ticket_key": "ACME-2041", "status": "running", "result": null, "diagrams": [],
+{"job_id": "9f1c…", "ticket_key": "PROJ-2041", "status": "running", "result": null, "diagrams": [],
  "error": null, "progress": {"phase": "intake", "…": "see Progress while it runs"}}
 ```
 
@@ -431,7 +431,7 @@ the 24-hour job-store TTL.
     {
       "job_id": "9f1c…",
       "conversation_id": "b27a…",
-      "prompt": "ACME-2041",
+      "prompt": "PROJ-2041",
       "status": "succeeded",
       "created_at": "2026-10-04T09:12:00+00:00",
       "review_outcome": "unreviewed",
@@ -502,7 +502,7 @@ what a person can browse.
   "scope": "mine",
   "count": 1,
   "learnings": [
-    { "job_id": "9f1c…", "ticket_key": "ACME-2041", "title": "…", "verdict": "confirmed_bug",
+    { "job_id": "9f1c…", "ticket_key": "PROJ-2041", "title": "…", "verdict": "confirmed_bug",
       "symptom": "…", "checked": ["…"], "root_cause_category": "report-visual", "root_cause": "…",
       "confidence": "high", "takeaways": ["…"], "entities": ["…"], "investigated_by": "…",
       "created_at": "…", "review_outcome": "unreviewed" }
@@ -557,9 +557,9 @@ returns. Partial work from an `incomplete`, `failed` or `cancelled` run is publi
   "job_id": "…",
   "count": 2,
   "files": [
-    { "job_id": "…", "path": "scratch/ACME-2107-handoff.md", "name": "ACME-2107-handoff.md",
+    { "job_id": "…", "path": "scratch/PROJ-2107-handoff.md", "name": "PROJ-2107-handoff.md",
       "size": 8123, "content_type": "text/markdown", "created_at": "…",
-      "url": "/v1/engagements/…/files/scratch/ACME-2107-handoff.md" }
+      "url": "/v1/engagements/…/files/scratch/PROJ-2107-handoff.md" }
   ]
 }
 ```
@@ -714,14 +714,14 @@ the HTTP `message` field. The one difference from HTTP: jobs started over MCP ha
 # 1. Start
 JOB=$(curl -s -X POST localhost:8000/v1/engagements \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"ticket_key":"ACME-2041"}' | jq -r .job_id)
+  -d '{"ticket_key":"PROJ-2041"}' | jq -r .job_id)
 
 # 2. Poll until terminal
 curl -s localhost:8000/v1/engagements/$JOB -H "Authorization: Bearer $TOKEN"
 
 # 3. Fetch the handoff document it wrote
 curl -s localhost:8000/v1/engagements/$JOB/files -H "Authorization: Bearer $TOKEN" | jq -r '.files[].path'
-curl -s localhost:8000/v1/engagements/$JOB/files/scratch/ACME-2041-handoff.md -H "Authorization: Bearer $TOKEN"
+curl -s localhost:8000/v1/engagements/$JOB/files/scratch/PROJ-2041-handoff.md -H "Authorization: Bearer $TOKEN"
 
 # 4. Optionally inspect what it did, then review the verdict
 curl -s localhost:8000/v1/engagements/$JOB/steps -H "Authorization: Bearer $TOKEN"
@@ -737,5 +737,5 @@ UPLOAD=$(curl -s -X POST localhost:8000/v1/uploads -H "Authorization: Bearer $TO
   -F "file=@BRD.pdf" | jq -r .upload_id)
 curl -s -X POST localhost:8000/v1/chat \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d "{\"prompt\":\"Does ACME-2041 cover everything in this BRD?\",\"attachment_ids\":[\"$UPLOAD\"]}"
+  -d "{\"prompt\":\"Does PROJ-2041 cover everything in this BRD?\",\"attachment_ids\":[\"$UPLOAD\"]}"
 ```

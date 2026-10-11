@@ -67,7 +67,7 @@ class FabricRestSemanticModel:
     @staticmethod
     def _assert_json_response(resp: requests.Response, context: str) -> None:
         """A wrong-tenant token returns HTTP 203 + an HTML sign-in page, not a clean 401 — see
-        docs/ai/repo-registry.md / repo-map.md. Fail loudly and specifically on that, not silently.
+        docs/ai/client/repo-registry.md / repo-map.md. Fail loudly and specifically on that, not silently.
 
         Raises a domain.errors.ScotriError subclass (never a bare RuntimeError) so callers like
         app/cli.py's cmd_dax_execute — which only catches ScotriError — surface a clean
@@ -78,7 +78,7 @@ class FabricRestSemanticModel:
         detail = (
             f"Fabric {context} failed: HTTP {resp.status_code}, content-type={content_type!r}. "
             f"A 203/HTML response usually means a wrong-tenant token (FABRIC_TENANT_ID) — see "
-            f"docs/ai/repo-registry.md. Body (truncated): {resp.text[:300]!r}"
+            f"docs/ai/client/repo-registry.md. Body (truncated): {resp.text[:300]!r}"
         )
         if resp.status_code in (401, 403, 203):
             raise CredentialError(detail)

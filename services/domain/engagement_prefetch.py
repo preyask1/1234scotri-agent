@@ -1,7 +1,7 @@
 """The engagement engine's pre-fetch: the fixed opening steps every Jira-shaped engagement used to
 spend its first one or two minutes on, run in parallel before the agent's first turn.
 
-Measured on ACME-2063/ACME-2085 (2026-10-01): the agent began each run with `--help` discovery, a
+Measured on PROJ-2063/PROJ-2085 (2026-10-01): the agent began each run with `--help` discovery, a
 presence-check, one or two jira-get-issue calls and a registry read, one Bash call at a time, at 7-36s
 each. None of that needs judgement. It's the same sequence whatever the ticket says, so the engine
 does it once, through the same governed paths the CLI uses, and puts the results at the top of the
@@ -47,7 +47,7 @@ _NOT_TICKET_PREFIXES = frozenset({
 
 
 def extract_ticket_keys(prompt: str, allowed_projects: frozenset[str] | None = None) -> list[str]:
-    """Jira keys mentioned in the prompt (bare `ACME-2085` or inside a browse URL), first-seen order,
+    """Jira keys mentioned in the prompt (bare `PROJ-2085` or inside a browse URL), first-seen order,
     at most MAX_TICKETS. With `allowed_projects` only those prefixes count; without it, any key-shaped
     token except obvious non-tickets like UTF-8 or SHA-256."""
     keys: list[str] = []
@@ -207,7 +207,7 @@ def _mirror_state(deps: PrefetchDeps, now: datetime) -> list[str]:
     syncing, stale, other_warnings, rows = [], [], [], []
     for repo_key in deps.registry.all_repo_keys():
         for ref in deps.registry.get(repo_key):
-            # planned_not_live trees aren't real yet (docs/ai/repo-registry.md); listing them as
+            # planned_not_live trees aren't real yet (docs/ai/client/repo-registry.md); listing them as
             # searchable, or warning that they're stale, would only send the agent looking for them.
             if not ref.mirrored or ref.status == "planned_not_live":
                 continue

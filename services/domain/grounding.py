@@ -11,7 +11,8 @@ to the agent once, to verify, label or remove (domain/engagement_policy.py).
 Deliberately narrow, so a flag is worth a look:
 - numbers with 4+ digits, comma-grouped numbers, decimals and percentages, never a bare year, a date,
   a time or a small count (short numbers match too much evidence by chance to prove anything);
-- fully-qualified `acme_prod`/`acme_dev` table names;
+- fully-qualified table names in the deployment's catalogs (`<catalog>.<schema>.<table>`; any
+  `*_prod`/`*_dev` catalog when none are configured);
 - file names of notebooks, scripts, TMDL files and Fabric items.
 Fenced code blocks are skipped (SQL/DAX/mermaid the agent proposes is a proposal, not a claim), and
 so is the scotri-learning block. Pure: no I/O.
@@ -26,7 +27,17 @@ _DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?)
 _TIME = re.compile(r"\b\d{1,2}:\d{2}(?::\d{2})?\b")
 _NUMBER = re.compile(r"(?<![\w.,/-])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+\.\d+|\d{4,})(%?)(?![\w/-])")
 _YEAR = re.compile(r"^(19|20)\d{2}$")
-_TABLE = re.compile(r"\b(acme_(?:prod|dev)\.[A-Za-z0-9_]+\.[A-Za-z0-9_]+)\b")
+_TABLE = re.compile(r"\b([A-Za-z0-9_]+_(?:prod|dev)\.[A-Za-z0-9_]+\.[A-Za-z0-9_]+)\b")
+"""Fallback when no catalogs are configured (config/client.yaml or the repo registry)."""
+
+
+def table_pattern(catalogs: tuple[str, ...] | list[str] = ()) -> re.Pattern[str]:
+    """Fully-qualified table names in `catalogs`, or the generic `*_prod`/`*_dev` fallback."""
+    names = sorted({c for c in catalogs if c}, key=len, reverse=True)
+    if not names:
+        return _TABLE
+    alternatives = "|".join(re.escape(c) for c in names)
+    return re.compile(rf"\b((?:{alternatives})\.[A-Za-z0-9_]+\.[A-Za-z0-9_]+)\b")
 _FILE = re.compile(r"[\w\- ()]*?[\w\-()]+\.(?:ipynb|py|tmdl|Report|SemanticModel|pbir|pbism)\b")
 
 MAX_CLAIMS = 15
@@ -56,12 +67,12 @@ def _normalise_evidence(evidence: str) -> tuple[str, str]:
     return folded, re.sub(r"(?<=\d),(?=\d{3}\b)", "", folded)
 
 
-def extract_claims(answer: str) -> list[str]:
+def extract_claims(answer: str, catalogs: tuple[str, ...] | list[str] = ()) -> list[str]:
     """The checkable claims in `answer`, in order of first appearance, without duplicates."""
     text = _FENCE.sub(" ", answer or "")
     text = _TIME.sub(" ", _DATE.sub(" ", text))
     seen: dict[str, None] = {}
-    for m in _TABLE.finditer(text):
+    for m in table_pattern(catalogs).finditer(text):
         seen.setdefault(m.group(1), None)
     for m in _FILE.finditer(text):
         name = m.group(0).strip().strip("()")
@@ -88,8 +99,8 @@ def _supported(claim: str, folded: str, nocommas: str) -> bool:
     return c in folded
 
 
-def check_grounding(answer: str, evidence: str) -> GroundingReport:
-    claims = extract_claims(answer)
+def check_grounding(answer: str, evidence: str, catalogs: tuple[str, ...] | list[str] = ()) -> GroundingReport:
+    claims = extract_claims(answer, catalogs)
     folded, nocommas = _normalise_evidence(evidence or "")
     unsupported = [c for c in claims if not _supported(c, folded, nocommas)]
     return GroundingReport(checked=len(claims), unsupported=unsupported[:MAX_CLAIMS])

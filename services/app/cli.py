@@ -1,5 +1,5 @@
 """Thin CLI entry points. This is what a skill-driven tool call actually invokes — via the Bash
-tool, e.g. `python -m app.cli databricks-select --user alice --catalog acme_prod --statement "..."`.
+tool, e.g. `python -m app.cli databricks-select --user alice --catalog <prod_catalog> --statement "..."`.
 
 Keep this file thin: argument parsing, JSON in/out, and wiring only. Any real logic belongs in
 domain/, not here.
@@ -583,7 +583,7 @@ def cmd_job_run_detail(args: argparse.Namespace) -> int:
 
 
 def cmd_lineage_rebuild(args: argparse.Namespace) -> int:
-    """Rebuild the SQLite lineage index from docs/ai/lineage-graph.yaml (OPEN_ITEMS.md item #37).
+    """Rebuild the SQLite lineage index from docs/ai/client/lineage-graph.yaml (OPEN_ITEMS.md item #37).
     Local/offline — no governor, no credential (the graph is a derived index, not an external call).
     Intended to be run after the source YAML changes, and callable from sync_service later."""
     import yaml
@@ -797,8 +797,8 @@ def _resolve_mirror_ref(container, args: argparse.Namespace) -> "tuple[str, str]
     requiring the caller to already know the raw ADO repo folder name under mirror-active/.
 
     --branch overrides the resolved branch, for the (only) case where a repo_key legitimately has
-    more than one branch registered for the same environment (e.g. fabric_core's `main` and
-    `hq_live`, both `prod`) and the caller wants the other one.
+    more than one branch registered for the same environment (e.g. a Fabric repo with two live
+    Prod content sets on two branches) and the caller wants the other one.
 
     Prints the standard error envelope and returns None on failure.
     """
@@ -1205,7 +1205,7 @@ def cmd_report_bindings(args: argparse.Namespace) -> int:
     with ThreadPoolExecutor(max_workers=_GREP_WORKERS) as pool:
         results = [r for r in pool.map(rank_one, jobs) if r]
     errors = [r for r in results if "error" in r]
-    # The same report is often cloned across trees (legacy and new repos, hq_live): one entry
+    # The same report is often cloned across trees (legacy and new repos, a second Prod branch): one entry
     # per identical copy set, with every location, rather than N near-duplicate rows.
     grouped: dict[str, dict] = {}
     for r in results:
@@ -1228,7 +1228,7 @@ def cmd_live_list(args: argparse.Namespace) -> int:
     Caller is responsible for having already checked presence-claim per those skills' hard rule —
     this command doesn't enforce that itself, since it's a read tool, not a policy gate.
 
-    Still governed (docs/ai/repo-registry.md: "a live Dev/UAT read still goes through the query
+    Still governed (docs/ai/client/repo-registry.md: "a live Dev/UAT read still goes through the query
     governor") — a live ADO call is a real call against a real system, rate-limited like any other."""
     container = build_container()
     try:
@@ -1337,7 +1337,7 @@ def cmd_jira_get_attachment(args: argparse.Namespace) -> int:
 
     Governed on Backend.JIRA, with the cache skipped both for the issue lookup and for each download
     (use_cache=False; rate/concurrency/audit still apply): a cached issue can be up to five minutes old
-    and miss an attachment added since (seen live on ACME-2107 right after a jira-attach), and a
+    and miss an attachment added since (seen live on PROJ-2107 right after a jira-attach), and a
     download's real result is the file on disk, which a cache hit can't vouch for. Only attachments listed on THIS ticket can be fetched. One unreadable or oversized
     attachment is reported and skipped, never fails the others."""
     container = build_container()
@@ -1579,7 +1579,7 @@ def _load_batch_items(args: argparse.Namespace) -> list:
         isinstance(i, list) and i and all(isinstance(a, str) for a in i) for i in items
     ):
         raise ValueError("batch file must be a JSON array of argv arrays, e.g. "
-                         '[["databricks-select", "--user", "u", "--catalog", "acme_prod", "--statement", "SELECT 1"]]')
+                         '[["databricks-select", "--user", "u", "--catalog", "<prod_catalog>", "--statement", "SELECT 1"]]')
     return items
 
 
@@ -1588,6 +1588,18 @@ _identity_logger = logging.getLogger("scotri.cli.identity")
 
 def _presence_commands():
     return {cmd_presence_check, cmd_presence_heartbeat, cmd_presence_release}
+
+
+def _check_component(args: argparse.Namespace, container=None) -> None:
+    """Refuses a command whose optional component (ADF, Fabric) is switched off for this deployment
+    (config/client.yaml, domain/client_config.py), before any adapter is built."""
+    from domain.client_config import COMMAND_COMPONENTS, DEFAULT_CLIENT_CONFIG, check_command_enabled
+
+    command = getattr(args, "command", None)
+    if command not in COMMAND_COMPONENTS:
+        return
+    container = container or build_container()
+    check_command_enabled(command, getattr(container, "client_config", DEFAULT_CLIENT_CONFIG))
 
 
 def _apply_run_identity(args: argparse.Namespace, container=None) -> None:
@@ -1621,7 +1633,7 @@ def _apply_run_identity(args: argparse.Namespace, container=None) -> None:
 def cmd_batch(args: argparse.Namespace) -> int:
     """Run several independent read commands in ONE process, in parallel. Each CLI call otherwise
     pays interpreter + import + client/auth start-up again, and an engagement's Bash calls run one
-    after another — the ACME-2063/ACME-2085 transcripts spent more time on that than on the backends.
+    after another — the PROJ-2063/PROJ-2085 transcripts spent more time on that than on the backends.
 
     Not a way around anything: every item is parsed by the same parser (same required args), runs
     the same cmd_* function, and so goes through run_governed exactly as it would alone — each item
@@ -1662,6 +1674,7 @@ def cmd_batch(args: argparse.Namespace) -> int:
     shared = build_container()
     try:
         for item_args in parsed:
+            _check_component(item_args, shared)
             _apply_run_identity(item_args, shared)
     except ScotriError as e:
         _print_error(e.category.value, e.user_message)
@@ -1857,7 +1870,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_lrebuild = sub.add_parser(
         "lineage-rebuild",
-        help="Rebuild the SQLite lineage index from docs/ai/lineage-graph.yaml. OPEN_ITEMS.md #37.",
+        help="Rebuild the SQLite lineage index from docs/ai/client/lineage-graph.yaml. OPEN_ITEMS.md #37.",
     )
     p_lrebuild.set_defaults(func=cmd_lineage_rebuild)
 
@@ -1865,7 +1878,7 @@ def build_parser() -> argparse.ArgumentParser:
         "lineage-trace",
         help="Blast radius from a node (downstream/upstream), from the lineage index. OPEN_ITEMS.md #37.",
     )
-    p_ltrace.add_argument("--node", required=True, help="A node id, 'kind:name' (e.g. gold_table:acme_prod.gold.visit_summary).")
+    p_ltrace.add_argument("--node", required=True, help="A node id, 'kind:name' (e.g. gold_table:<prod_catalog>.gold.visit_summary).")
     p_ltrace.add_argument("--direction", choices=["downstream", "upstream"], default="downstream")
     p_ltrace.add_argument("--max-hops", dest="max_hops", type=int, default=5)
     p_ltrace.set_defaults(func=cmd_lineage_trace)
@@ -1880,7 +1893,7 @@ def build_parser() -> argparse.ArgumentParser:
         "diagram-lint",
         help="Check every ```mermaid block in a markdown file renders (erDiagram grammar), with file line numbers.",
     )
-    p_dlint.add_argument("--file", required=True, help="e.g. scratch/ACME-1234-er-diagram.md (relative to the workspace root).")
+    p_dlint.add_argument("--file", required=True, help="e.g. scratch/PROJ-1234-er-diagram.md (relative to the workspace root).")
     p_dlint.set_defaults(func=cmd_diagram_lint)
 
     p_retrieve = sub.add_parser(
@@ -1925,14 +1938,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_mlist = sub.add_parser("mirror-list", help="List a directory from the local Prod mirror.")
     p_mlist.add_argument("--repo-key", dest="repo_key", required=True)
     p_mlist.add_argument("--environment", choices=[e.value for e in Environment], default=None)
-    p_mlist.add_argument("--branch", default=None, help="Override the registry-resolved branch (e.g. to pick fabric_core's hq_live over its default main).")
+    p_mlist.add_argument("--branch", default=None, help="Override the registry-resolved branch (to pick a second mirrored Prod branch over the default; see docs/ai/client/client.md).")
     p_mlist.add_argument("--path", default="")
     p_mlist.set_defaults(func=cmd_mirror_list)
 
     p_mread = sub.add_parser("mirror-read", help="Read a file from the local Prod mirror.")
     p_mread.add_argument("--repo-key", dest="repo_key", required=True)
     p_mread.add_argument("--environment", choices=[e.value for e in Environment], default=None)
-    p_mread.add_argument("--branch", default=None, help="Override the registry-resolved branch (e.g. to pick fabric_core's hq_live over its default main).")
+    p_mread.add_argument("--branch", default=None, help="Override the registry-resolved branch (to pick a second mirrored Prod branch over the default; see docs/ai/client/client.md).")
     p_mread.add_argument("--path", required=True)
     p_mread.add_argument("--as-text", dest="as_text", action="store_true",
                          help="Render an .ipynb as its cells' source (outputs dropped); other files unchanged.")
@@ -1980,7 +1993,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_tuse = sub.add_parser(
         "table-usage",
         help="Which notebooks, ADF pipelines and semantic models write, read or mention a table, from the mirror.")
-    p_tuse.add_argument("--table", required=True, help="e.g. acme_prod.gold.store_visit_report (matched on its last segment).")
+    p_tuse.add_argument("--table", required=True, help="e.g. <prod_catalog>.gold.store_visit_report (matched on its last segment).")
     p_tuse.add_argument("--repo-key", dest="repo_key", default=None, help="Omit to search every mirrored Prod tree.")
     p_tuse.add_argument("--environment", choices=[e.value for e in Environment], default=None)
     p_tuse.add_argument("--branch", default=None)
@@ -2095,7 +2108,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        if args.func is not cmd_batch:  # batch applies it per item itself
+        if args.func is not cmd_batch:  # batch applies both per item itself
+            _check_component(args)
             _apply_run_identity(args)
         return args.func(args)
     except ScotriError as e:

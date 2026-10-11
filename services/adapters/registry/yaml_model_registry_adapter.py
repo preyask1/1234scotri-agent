@@ -15,6 +15,8 @@ import yaml
 from domain.models import ModelRef
 
 DEFAULT_MODEL_REGISTRY_PATH = Path(__file__).resolve().parents[2] / "config" / "model_registry.yaml"
+ENGINE_DEFAULT_MODEL = {"vendor": "anthropic", "model": "claude-sonnet-5-5", "secret_name": "ANTHROPIC_API_KEY"}
+"""Used when config/model_registry.yaml has not been generated; `app.setup render` writes the profile's choice."""
 
 
 class YamlModelRegistry:
@@ -27,8 +29,13 @@ class YamlModelRegistry:
         self._load()
 
     def _load(self) -> None:
-        with open(self._path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+        if not Path(self._path).is_file():
+            # The model is the one setting the engine can default: no profile yet means the engine's
+            # own choice, not a broken deployment.
+            data = {"default": ENGINE_DEFAULT_MODEL}
+        else:
+            with open(self._path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
 
         default_entry = data.get("default")
         if default_entry:

@@ -9,7 +9,7 @@ answer. This module ranks; the always-trace-all-four-repos rule still owns compl
 BM25 only, no embeddings — a deliberate first step (OPEN_ITEMS.md #38, confirmed 2026-09-29 given the
 Azure/Foundry direction): no new credential, no outbound call, nothing against the one-portable-folder
 premise. A hybrid embeddings adapter (Foundry-hosted, in-tenant) can be added later behind the same
-retrieval port. Lexical also handles the exact-identifier tokens (USP_*, NB_*, acme_prod.gold.*) that
+retrieval port. Lexical also handles the exact-identifier tokens (USP_*, NB_*, <prod_catalog>.gold.*) that
 pure vector search does badly — which is why the eventual design is hybrid, not vector-only.
 
 Pure domain: no file IO, no sqlite. The adapter assembles Documents from its corpora and calls rank().
@@ -23,12 +23,12 @@ from dataclasses import dataclass, field
 
 _K1 = 1.5
 _B = 0.75
-# Identifier-aware: [a-z0-9_.]+ keeps USP_SALES_TREND and acme_prod.gold.visit_summary as whole tokens.
+# Identifier-aware: [a-z0-9_.]+ keeps USP_SALES_TREND and <prod_catalog>.gold.visit_summary as whole tokens.
 _TOKEN_RE = re.compile(r"[a-z0-9_.]+")
 
 
 def tokenize(text: str) -> list[str]:
-    """Whole identifiers PLUS their `.`/`_`-split pieces, so both an exact `acme_prod.gold.visit_summary`
+    """Whole identifiers PLUS their `.`/`_`-split pieces, so both an exact `<prod_catalog>.gold.visit_summary`
     match and a looser `visit`/`summary` match contribute — the lexical half of what would otherwise
     need embeddings to catch."""
     tokens: list[str] = []

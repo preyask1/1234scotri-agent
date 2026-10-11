@@ -23,7 +23,7 @@ class TicketWriter(Protocol):
         ...
 
     def create_bug(self, project: str, summary: str, description: str) -> str:
-        """Create a new Bug-type issue. Returns the new issue's key (e.g. 'ACME-1234')."""
+        """Create a new Bug-type issue. Returns the new issue's key (e.g. 'PROJ-1234')."""
         ...
 
     def add_attachment(self, key: str, filename: str, data: bytes, content_type: str) -> list[dict]:

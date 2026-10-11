@@ -1,7 +1,7 @@
 """Plain-text views of mirror files, and the search over them (mirror-read --as-text, mirror-find,
 mirror-grep). Pure functions: no filesystem, no network. The adapter hands in paths and contents.
 
-Why this exists: a notebook read from the mirror arrives as .ipynb JSON. On ACME-2085 the agent spent
+Why this exists: a notebook read from the mirror arrives as .ipynb JSON. On PROJ-2085 the agent spent
 several calls parsing it with ad-hoc Python and re-read the same notebook five times when a /tmp path
 meant different things to Git Bash and to Windows Python. Rendering cells as text here gives every
 caller the same view, with the same line numbers that mirror-grep reports.

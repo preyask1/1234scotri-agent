@@ -5,7 +5,7 @@ last-validated-commit: n/a — reference doc
 
 # Jira access — REST, single service account (no OAuth MCP)
 
-Scoped to the data team's primary project **ACME** plus any projects listed in
+Scoped to the data team's primary project **PROJ** plus any projects listed in
 `SCOTRI_JIRA_PROJECTS`. An OAuth Atlassian MCP server (browser sign-in) would carry write scopes gated
 only by a behavioural rule. This workspace uses a plain REST service account instead: no browser
 sign-in, and every write goes through the confirm-first `jira-write` path in the app.
@@ -32,10 +32,10 @@ sign-in, and every write goes through the confirm-first `jira-write` path in the
 ## Handy JQL
 ```sql
 -- Open dev stories/CRs
-project = ACME AND issuetype IN (Story, Task) AND statusCategory != Done
+project = PROJ AND issuetype IN (Story, Task) AND statusCategory != Done
 
 -- Bugs needing investigation
-project = ACME AND issuetype = Bug AND status IN ("Info Required", "In Dev")
+project = PROJ AND issuetype = Bug AND status IN ("Info Required", "In Dev")
 ```
 
 ## Writing back — one narrow, confirm-gated exception

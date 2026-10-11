@@ -3,7 +3,7 @@ failures" section; OPEN_ITEMS.md: decided 2026-09-27) — read-only ARM REST cal
 client-credentials auth.
 
 Authenticates as its own app in the ADF tenant (ADF_TENANT_ID/ADF_CLIENT_ID, OPEN_ITEMS.md #16)
-using a **federated identity credential, never a secret**: ADF lives in the Acme OPS tenant, a
+using a **federated identity credential, never a secret**: ADF can live in a separate data tenant, a
 different Entra tenant from Fabric/Scotri, so the Fabric SP cannot be used. The app trusts a managed
 identity on the Scotri host; adapters/azure_ad/federated_assertion.py gets that identity's token and
 it is exchanged here as a `client_assertion`. The token scope is ARM's `.default` — deliberately **not** `az`: the runbook this reader is modeled on

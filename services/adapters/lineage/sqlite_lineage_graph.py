@@ -1,9 +1,9 @@
 """SQLite lineage graph adapter (OPEN_ITEMS.md item #37) — implements ports.lineage_graph.LineageGraph.
 
 Storage is a single SQLite file with recursive-CTE traversal, exactly the design note's "do not buy
-Neo4j on day one" recommendation (docs/ai/retrieval-and-graph-design.md §1): at four repos this fits
+Neo4j on day one" recommendation (docs/ai/retrieval-and-graph-design.md §1): at a handful of repos this fits
 in SQLite with no new infrastructure, credential or vendor. The file is a *derived index* rebuilt
-from docs/ai/lineage-graph.yaml, not a system of record — so losing it (e.g. an AKS pod restart)
+from docs/ai/client/lineage-graph.yaml, not a system of record — so losing it (e.g. an AKS pod restart)
 costs nothing but a rebuild.
 
 No external service, no credential — so this adapter is unit-tested directly against a temp file

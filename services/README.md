@@ -41,8 +41,9 @@ need:
    variable the adapters expect; copy it to `.env` and fill in real values (a read-only ADO PAT, a
    Databricks service principal, a Fabric service principal, a Jira service-account token, an
    Anthropic API key). **Never commit `.env`** — it's gitignored.
-3. **Your own registries.** `config/*.yaml` and `../docs/ai/` describe a fictional platform ("Acme
-   Retail"); replace them with your own repos, catalogs and lineage.
+3. **Your own client profile.** `config/*.yaml` and `../docs/ai/client/` are generated from
+   `../client/profile.yaml` by `python -m app.setup` (see [`../SETUP.md`](../SETUP.md)). A worked
+   example for a fictional retailer is in `../examples/acme-retail/`.
 
 The test suite needs none of this.
 
@@ -110,13 +111,13 @@ python -m app.cli registry-resolve --repo-key databricks --environment prod
 # concurrency slot, so calling it never consumes real quota. The actual accept/reject decision only
 # happens inside a real governed call (databricks-select, dax-execute) via domain/governed_call.py.
 python -m app.cli governor-check --user alice --backend databricks
-python -m app.cli presence-check --entity ACME-1234 --owner alice
+python -m app.cli presence-check --entity PROJ-1234 --owner alice
 
 # Release a claim early instead of waiting out its 30-minute TTL (no-op if --owner doesn't hold it):
-python -m app.cli presence-release --entity ACME-1234 --owner alice
+python -m app.cli presence-release --entity PROJ-1234 --owner alice
 
 # Refresh a held claim's last_heartbeat + TTL for long-running work (refuses if --owner doesn't hold it):
-python -m app.cli presence-heartbeat --entity ACME-1234 --owner alice
+python -m app.cli presence-heartbeat --entity PROJ-1234 --owner alice
 
 # ADF pipeline/activity run history (OPEN_ITEMS.md: decided 2026-09-27, Prod factory only).
 # --pipeline is mandatory and non-empty (domain/adf_run_policy.py) and the window is capped at
@@ -132,8 +133,8 @@ python -m app.cli activity-runs --user alice --run-id <runId-from-pipeline-runs>
 # models only). Without --refresh-id, lists recent attempts; with it, drills into per-partition
 # detail — only ever populated for a dataset on Enhanced Refresh (a Standard-refresh dataset
 # reports `available: false`, which is the expected answer, not an error):
-python -m app.cli refresh-history --user alice --workspace "ACME-Fabric-Prod-Workspace" --dataset "Sales Model" --top 10
-python -m app.cli refresh-history --user alice --workspace "ACME-Fabric-Prod-Workspace" --dataset "Sales Model" --refresh-id <id-from-the-list-above>
+python -m app.cli refresh-history --user alice --workspace "<Fabric workspace>" --dataset "Sales Model" --top 10
+python -m app.cli refresh-history --user alice --workspace "<Fabric workspace>" --dataset "Sales Model" --refresh-id <id-from-the-list-above>
 
 # The steps the agent took for an engagement job_id (read-only; from its session transcript on this
 # host, so tool inputs/outputs are truncated and secret-redacted). Same data over HTTP, owner-only:
@@ -144,16 +145,16 @@ python -m app.cli job-trace --job-id <job_id>
 # items). Each item runs its normal cmd_* — still governed, rate-counted and redacted; write
 # commands are refused (app/cli.py BATCHABLE_COMMANDS). Measured 2026-10-01: 3 uncached Databricks
 # queries + mirror-list + jira-get-issue + registry-resolve took 20.6s as six calls, 6.0s as one batch.
-echo '[["jira-get-issue","--key","ACME-2085"],["mirror-list","--repo-key","databricks"]]' > /tmp/b.json
+echo '[["jira-get-issue","--key","PROJ-2085"],["mirror-list","--repo-key","databricks"]]' > /tmp/b.json
 python -m app.cli batch --file /tmp/b.json      # or --file - to read stdin
 ```
 
-## Why `config/repo_registry.yaml` duplicates `docs/ai/repo-registry.md`
+## Why `config/repo_registry.yaml` duplicates `docs/ai/client/repo-registry.md`
 
-`docs/ai/repo-registry.md` is what Claude reads — prose, tables, reasoning about *why*. This YAML
+`docs/ai/client/repo-registry.md` is what Claude reads — prose, tables, reasoning about *why*. This YAML
 file is what Python code parses — structured, no markdown to interpret. They describe the same
 facts from two different consumers' point of view. **Keep them in sync by hand for now**; if they
-ever drift, `docs/ai/repo-registry.md` is the source of truth to reconcile toward. A later pass
+ever drift, `docs/ai/client/repo-registry.md` is the source of truth to reconcile toward. A later pass
 could generate one from the other — not done yet, since it's not worth the complexity until the
 registry is changing often enough for hand-sync to actually become a burden.
 

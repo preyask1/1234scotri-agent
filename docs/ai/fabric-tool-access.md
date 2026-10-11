@@ -20,7 +20,7 @@ rate limit.
 
 ## 1. Databricks — query gold tables
 
-**Query workspace:** `DATABRICKS_HOST` (e.g. `adb-1111111111111111.11.azuredatabricks.net`). Dev and
+**Query workspace:** `DATABRICKS_HOST` (e.g. `<databricks host>`). Dev and
 Prod share one Unity Catalog metastore, so this one connection reads either catalog.
 
 - **Auth:** `databricks-sdk`'s `WorkspaceClient`, service-principal M2M OAuth
@@ -29,7 +29,7 @@ Prod share one Unity Catalog metastore, so this one connection reads either cata
 - **Surface:** `w.statement_execution.execute_statement(...)` for SQL; every call routed through the
   **query governor** (rate limit, concurrency cap, cache), never issued directly.
 - **Warehouse:** `DATABRICKS_SQL_WAREHOUSE_ID` — ideally a dedicated, read-only warehouse for the agent.
-- **Catalog:** `acme_prod` by default; `acme_dev` only when Dev is named. If ambiguous → prod, and say
+- **Catalog:** `<prod_catalog>` by default; `<dev_catalog>` only when Dev is named. If ambiguous → prod, and say
   so.
 
 ### Guardrails
@@ -48,7 +48,7 @@ it never writes to the mirror and never triggers a sync.
 
 - **Auth (for the sync service, not this agent):** a read-only PAT (`Code (Read)` scope only). No
   write-capable git credential exists anywhere in the deployment.
-- **Which repo/branch:** [`repo-registry.md`](./repo-registry.md).
+- **Which repo/branch:** [`repo-registry.md`](client/repo-registry.md).
 - Mechanics and the narrow-before-you-read pattern: the `fabric-read` and `adf-databricks-read` skills.
 
 ---
@@ -63,7 +63,7 @@ and no desktop app on this host.
   `FABRIC_TENANT_ID`), client-credentials flow against `https://analysis.windows.net/powerbi/api`. The
   SP must be at least a Viewer on the target workspace.
 - **Surface:** the Power BI `executeQueries` REST endpoint, routed through the governor.
-- **Pick the workspace** from [`repo-map.md`](./repo-map.md), never from a TMDL `WorkspaceName`
+- **Pick the workspace** from [`repo-map.md`](client/repo-map.md), never from a TMDL `WorkspaceName`
   parameter (it can be a stale label).
 - **Guardrails:** read-only DAX and metadata only. No create/update/delete on any measure, table,
   role or partition; no publish; no refresh.
@@ -74,7 +74,7 @@ and no desktop app on this host.
 
 1. **`fabric-read`** — read the measure's DAX and the table's M partition (gold-table name).
 2. **`dax-debug`** — evaluate the DAX against the published model under the relevant filters/role.
-3. **`databricks-query`** — query `acme_prod.gold.<table>` with equivalent filters.
+3. **`databricks-query`** — query `<prod_catalog>.gold.<table>` with equivalent filters.
 4. **`adf-databricks-read`** — read the producing notebook's logic, to check whether the live table
    (step 3) matches what the notebook claims to do.
 5. **Compare.** Divergence localises to DAX/model/RLS (1–2), a notebook/live-data mismatch (3–4), or

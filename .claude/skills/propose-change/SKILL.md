@@ -27,7 +27,7 @@ text of the fix is more useful than a description.
    `mirror-staging/`, or anything resembling a product-repo working tree):
    - `<safe-file-name>.patch` — unified diff (`diff -u` style) with `--- a/<path>` / `+++ b/<path>`
      headers using the path **inside its own repo**, e.g.
-     `Insights/Sales/Sales_Overview_Model_North.SemanticModel/definition/tables/Sales.tmdl`, so a
+     `Sales/Sales_Overview_Model.SemanticModel/definition/tables/Sales.tmdl`, so a
      human can `git apply` it against their clone of the right repo.
    - `<safe-file-name>` — the **full modified file**, not just changed lines, so a human whose clone
      has moved on can diff or copy it in when the patch doesn't apply cleanly.

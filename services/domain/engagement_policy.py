@@ -243,6 +243,7 @@ def run_engagement(
     artifact_store: ArtifactStore | None = None,
     progress_store: ProgressStore | None = None,
     grounding_evidence: Callable[[str, str, datetime], str | None] | None = None,
+    grounding_catalogs: tuple[str, ...] = (),
     release_claims: Callable[[str, str], list[str]] | None = None,
 ) -> None:
     """Run a previously-QUEUED engagement to completion, updating the job store at each transition
@@ -408,7 +409,7 @@ def run_engagement(
             outcome = "incomplete"
         else:
             final_text, session_id, cancelled = _grounded(
-                result.text, engagement, job_id, session_id, grounding_evidence, agent_runtime,
+                result.text, engagement, job_id, session_id, grounding_evidence, grounding_catalogs, agent_runtime,
                 workspace_root, env, run_kwargs, artifact_store, job_store)
             if cancelled:
                 job_store.update(engagement.with_status(EngagementStatus.CANCELLED, session_id=session_id))
@@ -526,6 +527,7 @@ def _safe(text: str | None, job_id: str) -> str | None:
 
 def _grounded(text: str, engagement: Engagement, job_id: str, session_id: str | None,
               grounding_evidence: Callable[[str, str, datetime], str | None] | None,
+              grounding_catalogs: tuple[str, ...],
               agent_runtime: AgentRuntime, workspace_root: str, env: dict[str, str] | None,
               run_kwargs: dict, artifact_store: ArtifactStore | None,
               job_store: JobStore) -> tuple[str, str | None, bool]:
@@ -543,7 +545,7 @@ def _grounded(text: str, engagement: Engagement, job_id: str, session_id: str | 
         if evidence is None:
             logger.info("run_engagement: job_id %s grounding skipped (no transcript)", job_id)
             return text, session_id, False
-        report = check_grounding(text, evidence)
+        report = check_grounding(text, evidence, grounding_catalogs)
     except Exception:  # noqa: BLE001 — a check that breaks must never fail a finished run
         logger.exception("run_engagement: job_id %s grounding check failed; answer kept as-is", job_id)
         return text, session_id, False

@@ -96,6 +96,6 @@ notebook-vs-live-data disagreement explicitly — see [`lineage-map.md`](./linea
 ## Where to go next
 
 - Folder map, naming, PBIP file formats, parameters → [`fabric-conventions.md`](./fabric-conventions.md)
-- Fetch Fabric files / query Databricks / evaluate DAX → [`fabric-tool-access.md`](./fabric-tool-access.md)
+- Fetch Fabric files / query Databricks / evaluate DAX → [`fabric-tool-access.md`](../fabric-tool-access.md)
 - **Guardrail:** any change to an M partition, DAX measure, or RLS role is a semantic-model edit —
   this agent never makes one, never publishes one, and only reads the mirror.

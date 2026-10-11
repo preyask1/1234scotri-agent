@@ -7,13 +7,13 @@ capped window and the limit cap *before* either list method is called; this adap
 re-check those itself, so it must always be reached through the governed CLI commands, never called
 directly.
 
-Prod workspace only: the single configured connection (DATABRICKS_HOST — adb-1111111111111111.11),
+Prod workspace only: the single configured connection (DATABRICKS_HOST — <databricks host>),
 matching the ADF reader's Prod-factory-only decision. The second workspace
-(adb-2222222222222222) is a pending, separately-signed-off access request (OPEN_ITEMS.md decision 4)
+(<secondary workspace host>) is a pending, separately-signed-off access request (OPEN_ITEMS.md decision 4)
 and is intentionally not reachable here.
 
 The Jobs API is a different permission surface from Unity Catalog SELECT: the SP's SELECT grant on
-acme_prod/acme_dev says nothing about whether it can read job runs. If a call comes back 403 /
+<prod_catalog>/<dev_catalog> says nothing about whether it can read job runs. If a call comes back 403 /
 PERMISSION_DENIED, that is a *missing Jobs-API grant on this SP for this workspace* — report it as
 exactly that, not as a broken adapter or a missing credential (OPEN_ITEMS.md item #30 decision 1).
 """
@@ -65,13 +65,12 @@ class DatabricksJobsRunReader:
         if "DOES_NOT_EXIST" in text or "DOES NOT EXIST" in text or "NOT_FOUND" in text or "404" in text:
             # The Jobs API answers "does not exist" both for a job/run in another workspace and for
             # one this SP may not view. A gold table's DESCRIBE HISTORY can name a writer job this
-            # workspace then calls nonexistent (store_visit_report's nightly job, OPEN_ITEMS.md #14).
+            # workspace then calls nonexistent (a job on a secondary workspace, OPEN_ITEMS.md #14).
             return NotFoundError(
                 f"Databricks Jobs API {context}: not visible from this workspace (DATABRICKS_HOST). The "
-                f"nightly jobs that write the Prod gold tables run on adb-2222222222222222, which this "
-                f"agent can't read yet (access pending, OPEN_ITEMS.md #18); otherwise this service "
-                f"principal lacks CAN_VIEW on it. It does not mean the job or run never existed. "
-                f"Detail: {exc}")
+                f"job may run on another workspace this agent can't read (docs/ai/client/client.md names "
+                f"a secondary workspace if there is one, OPEN_ITEMS.md #18), or this service principal "
+                f"lacks CAN_VIEW on it. It does not mean the job or run never existed. Detail: {exc}")
         if "TOO_MANY_REQUESTS" in text or "429" in text or "UNAVAILABLE" in text or "INTERNAL" in text:
             return TransientError(f"Databricks Jobs API {context} failed transiently. Detail: {exc}")
         return ScotriError(f"Databricks Jobs API {context} failed. Detail: {exc}")

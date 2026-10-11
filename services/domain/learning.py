@@ -33,7 +33,7 @@ _MAX_TEXT = 1000
 # mostly in `checked`, where the agent noted what a query returned (OPEN_ITEMS.md #60(b)). A learning
 # crosses users, so data-shaped figures become <n>. Numbers that say *where* or *what kind* survive:
 # line/cell/version/id/attachment/job/run numbers, HTTP codes, durations, dates, times, years, and
-# digits inside identifiers (Wave3, v19, ACME-2118, table names).
+# digits inside identifiers (Wave3, v19, PROJ-2118, table names).
 _FIGURE = re.compile(r"(?<![\w.\-/])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+\.\d+|\d{3,})(%?)(?![\w\-/])"
                      r"|(?<![\w.\-/])(\d{1,2})(%)")
 _KEEP_BEFORE = re.compile(

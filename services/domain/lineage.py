@@ -1,7 +1,7 @@
 """Lineage graph — pure domain types and the loader that turns the machine-readable lineage source
-(docs/ai/lineage-graph.yaml) into validated nodes and edges (OPEN_ITEMS.md item #37).
+(docs/ai/client/lineage-graph.yaml) into validated nodes and edges (OPEN_ITEMS.md item #37).
 
-Why a graph at all: docs/ai/lineage-map.md already *is* a graph (gold table ⇄ producing notebook ⇄
+Why a graph at all: docs/ai/client/lineage-map.md already *is* a graph (gold table ⇄ producing notebook ⇄
 consuming Fabric model), hand-maintained in markdown with 🔁 markers on edges nobody has
 re-verified. impact-analysis re-derives that reachability by reading files every time. A queryable
 graph answers "what does changing X touch" as a traversal, and — the property that actually matters
@@ -10,7 +10,7 @@ the always-trace-all-four-repos behavioural promise into something structural (d
 docs/ai/retrieval-and-graph-design.md §1).
 
 Decision recorded here (OPEN_ITEMS.md #37 decision 3, resolved 2026-09-29): the YAML is the
-machine-readable *source of truth* for the graph; docs/ai/lineage-map.md stays the human-readable
+machine-readable *source of truth* for the graph; docs/ai/client/lineage-map.md stays the human-readable
 narrative. The heterogeneous markdown tables are not reliably machine-parseable, so making them the
 parse source would silently drop rows — the exact failure this graph exists to prevent. `verified:
 false` here is the queryable form of the map's 🔁 marker.
@@ -34,7 +34,7 @@ KNOWN_RELS = frozenset(
 
 @dataclass(frozen=True)
 class LineageNode:
-    id: str  # "kind:name", e.g. "gold_table:acme_prod.gold.visit_summary"
+    id: str  # "kind:name", e.g. "gold_table:<prod_catalog>.gold.visit_summary"
     kind: str
     name: str
 
@@ -80,7 +80,7 @@ def _node_id_parts(node_id: str) -> tuple[str, str]:
     """A node id is "kind:name"; the name itself may contain ':' (a DAX path, a URL), so split once."""
     if ":" not in node_id:
         raise ConfigurationError(
-            f"lineage node id {node_id!r} must be 'kind:name' (e.g. 'gold_table:acme_prod.gold.x') — "
+            f"lineage node id {node_id!r} must be 'kind:name' (e.g. 'gold_table:<prod_catalog>.gold.x') — "
             f"the kind prefix is what lets coverage group nodes by type."
         )
     kind, name = node_id.split(":", 1)

@@ -1,5 +1,5 @@
 # Machine-readable lineage graph — the source of truth the queryable graph index is built from.
-# This file is authoritative for the graph; docs/ai/lineage-map.md is the human-readable narrative of
+# This file is authoritative for the graph; docs/ai/client/lineage-map.md is the human-readable narrative of
 # the same facts. Keep the two in sync. The platform (Acme Retail) is fictional.
 #
 # Loaded and validated by domain/lineage.py, built into a SQLite index by

@@ -15,7 +15,7 @@ Picking a technology before naming the bottleneck is how a platform accumulates 
 doesn't need. In this lifecycle the cost is concentrated in one stage:
 
 **`impact-analysis` reads file content into the model's context to answer a reachability question.**
-TMDL tables, notebook source, pipeline JSON, across four repos. Every other stage is comparatively
+TMDL tables, notebook source, pipeline JSON, across the platform's repos. Every other stage is comparatively
 cheap: `jira-intake` reads one ticket, `bug-investigation` reads a handful of targeted files and
 runs a few governed queries, `implementation-plan` and `handoff-doc` mostly write rather than read.
 
@@ -34,7 +34,7 @@ those numbers before committing to the graph build below; if they contradict thi
 
 ### Why it's the right shape
 
-[`lineage-map.md`](lineage-map.md) **is a graph**: gold table ⇄ producing notebook ⇄ consuming
+[`lineage-map.md`](client/lineage-map.md) **is a graph**: gold table ⇄ producing notebook ⇄ consuming
 Fabric model, hand-maintained in markdown, with 🔁 markers on edges nobody has re-verified. That is
 a graph database with no database. `lineage-trace`'s own instructions are a traversal algorithm
 written as prose for a model to execute by reading files.
@@ -49,7 +49,7 @@ LLM reading TMDL files and hoping it found them all.
 ### The property that matters most here
 
 **Completeness becomes provable.** `agent-instructions.md` hard-rules "always trace impact across
-all four repos … never silently narrow the analysis without saying so." A traversal can report
+every repo … never silently narrow the analysis without saying so." A traversal can report
 *"47 nodes reached, 3 edges unverified since 2026-09-12."* A model sweeping files can only report
 what it happened to find, and — worse for an unattended agent — it reports it with the same
 confidence either way. This converts a behavioural promise into a structural guarantee, which is
@@ -68,7 +68,7 @@ the same move the `query_guard` allowlist made for the SELECT-only rule.
 ### Build it small
 
 Populate from the mirror as a step in `app/sync_service.py`, which already runs on a schedule and
-already has the files open. **Do not buy Neo4j on day one.** At four repos this fits in SQLite with
+already has the files open. **Do not buy Neo4j on day one.** At a handful of repos this fits in SQLite with
 recursive CTEs, or a NetworkX graph rebuilt per sync and pickled — no new infrastructure, no new
 credential, no new vendor, which matters in a workspace whose premise is one portable folder
 (`CLAUDE.md`, "Not in this workspace, on purpose").
@@ -107,7 +107,7 @@ the candidate generator for impact analysis.
 ### One implementation note
 
 Hybrid BM25 + embeddings, chunked per notebook cell and per TMDL table. Identifiers like `USP_*`,
-`NB_*` and `acme_prod.gold.*` are exact-match tokens that pure vector search handles badly, which is
+`NB_*` and `<prod_catalog>.gold.*` are exact-match tokens that pure vector search handles badly, which is
 why lexical search stays in the mix rather than being replaced by it.
 
 ---

@@ -97,7 +97,7 @@ class QueryResult:
     columns: list[str]
     rows: list[tuple]
     row_count: int
-    source: str = ""  # e.g. "acme_prod.gold.sales_summary" or a DAX target — for audit logging
+    source: str = ""  # e.g. "<prod_catalog>.gold.sales_summary" or a DAX target — for audit logging
 
     def to_json(self) -> str:
         """Round-trips through the query-governor's cache (a string store) and is what CLI

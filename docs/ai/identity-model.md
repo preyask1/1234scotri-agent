@@ -116,7 +116,7 @@ touches. Two reasons:
 2. **The `SELECT`-only guard restricts verbs, not rows/columns.** `domain/query_guard.py` blocks
    writes; it says nothing about *which* rows a read may return.
 
-Scotri's intended users this phase are **data engineers investigating ACME tickets**, not row-level-
+Scotri's intended users this phase are **data engineers investigating PROJ tickets**, not row-level-
 scoped business users — so this hasn't bitten yet. But the moment an end-user audience (salesmen,
 field users) can put questions to Scotri, it becomes a real authorization gap.
 

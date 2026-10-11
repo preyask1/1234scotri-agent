@@ -10,7 +10,7 @@ denies with the returned reason. Pure: no I/O beyond resolving paths, so it's te
 The rules are allowlists, so a path or command nobody thought about is refused, not admitted:
 
 - File-writing tools (Write/Edit/MultiEdit/NotebookEdit) may write only under scratch/, proposals/
-  and investigations/, plus docs/ai/lineage-map.md, the one doc a skill (lineage-trace) is told to
+  and investigations/, plus docs/ai/client/lineage-map.md, the one doc a skill (lineage-trace) is told to
   keep up to date. Paths are resolved, symlinks included, before the check.
 - Bash may run only `cd <dir>` and `<services venv python> -m app.cli <command> ...`, joined by `&&`
   or `;`. No pipes, redirects, substitution (`$`/backtick outside single quotes), background jobs or
@@ -28,7 +28,7 @@ from pathlib import Path
 FILE_WRITE_TOOLS = {"Write": "file_path", "Edit": "file_path", "MultiEdit": "file_path",
                     "NotebookEdit": "notebook_path"}
 WRITABLE_DIRS = ("scratch", "proposals", "investigations")
-WRITABLE_FILES = ("docs/ai/lineage-map.md",)
+WRITABLE_FILES = ("docs/ai/client/lineage-map.md",)
 OPS_ONLY_COMMANDS = {"governor-reset", "sync-run-once", "artifacts-purge"}
 DENIED_TOOLS = {"PowerShell"}
 _SEPARATORS = {"&&", ";"}

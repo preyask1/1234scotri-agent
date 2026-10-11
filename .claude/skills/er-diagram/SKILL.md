@@ -15,7 +15,7 @@ file under `scratch/`.
   ````
   ```mermaid
   ---
-  title: Category Sales Analytics Model (fabric_core/main)
+  title: Sales Analytics Model (<repo_key>/main)
   ---
   erDiagram
       vw_category_daily_sales }o--|| CalendarDate : "Date"
@@ -89,14 +89,14 @@ inferred from a column name is fabrication (e.g. an `int` drawn as `string`, a `
 
 ## B. Databricks Unity Catalog tables — keys often undeclared
 
-1. **Columns**: one `batch` of `DESCRIBE TABLE acme_prod.<schema>.<table>` per table.
+1. **Columns**: one `batch` of `DESCRIBE TABLE <prod_catalog>.<schema>.<table>` per table.
 2. **Declared keys** — the only edges drawn solid:
    ```sql
    SELECT tc.table_name, tc.constraint_type, kcu.column_name, rc.unique_constraint_name
-   FROM acme_prod.information_schema.table_constraints tc
-   JOIN acme_prod.information_schema.key_column_usage kcu
+   FROM <prod_catalog>.information_schema.table_constraints tc
+   JOIN <prod_catalog>.information_schema.key_column_usage kcu
      ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
-   LEFT JOIN acme_prod.information_schema.referential_constraints rc
+   LEFT JOIN <prod_catalog>.information_schema.referential_constraints rc
      ON tc.constraint_name = rc.constraint_name
    WHERE tc.table_schema = '<schema>' AND tc.table_name IN ('<t1>', '<t2>')
    ```

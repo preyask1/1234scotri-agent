@@ -18,7 +18,7 @@ python -m app.cli lineage-trace --node "gold_table:<name>" --direction downstrea
 python -m app.cli lineage-coverage    # totals + the unverified-edge (🔁) worklist + last build
 ```
 
-- Built from `docs/ai/lineage-graph.yaml` (machine source of truth). `docs/ai/lineage-map.md` is the
+- Built from `docs/ai/client/lineage-graph.yaml` (machine source of truth). `docs/ai/client/lineage-map.md` is the
   human-readable narrative; keep them in sync.
 - Every traversal reports `unverified_edge_count`. An edge with `verified: false` is the YAML form of
   the map's 🔁 marker.
@@ -40,11 +40,11 @@ Databricks facts.
 ## Procedure
 
 ### 1. Fabric table → gold table name (skip if you started from a gold table)
-- The model may be in **either** Fabric repo, and on either of `fabric-core`'s two live branches.
+- The model may be in **any** Fabric repo, and on any of a repo's mirrored branches.
   List candidate `*.SemanticModel` folders, then read
   `<repo>/<Area>/<Model>.SemanticModel/definition/tables/<table>.tmdl` and its M partition.
 - The `Databricks.Catalogs(...)` block names the gold table and uses `CatalogName`/`SchemaName`
-  params (`acme_prod`/`acme_dev` . `gold`). Where the change depends on them, read the live values via
+  params (`<prod_catalog>`/`<dev_catalog>` . `gold`). Where the change depends on them, read the live values via
   `dax-debug`: the mirror's `expressions.tmdl` copy is routinely stale.
 - Record the exact gold table name **and the repo and branch**.
 - Skip `param_*`, `Role Parameter *` and RLS tables: model-internal, not lineage.
@@ -58,9 +58,9 @@ position, and its SCD2 merge pattern if any. Don't guess from naming convention.
 ### 3. Gold table → live Databricks facts
 Via `databricks-query`:
 ```sql
-DESCRIBE TABLE acme_prod.gold.<table>;
-SELECT COUNT(*) FROM acme_prod.gold.<table>;
-SELECT * FROM acme_prod.gold.<table> LIMIT 20;  -- optional, to test a specific hypothesis
+DESCRIBE TABLE <prod_catalog>.gold.<table>;
+SELECT COUNT(*) FROM <prod_catalog>.gold.<table>;
+SELECT * FROM <prod_catalog>.gold.<table> LIMIT 20;  -- optional, to test a specific hypothesis
 ```
 Compare with what the notebook (step 2) claims to produce and **state plainly whether they agree**.
 A disagreement (stale deploy, in-flight change, bug) is a finding; don't quietly reconcile it in
@@ -68,13 +68,13 @@ favor of one source.
 
 ### 4. Gold table → every consuming Fabric model
 - `table-usage`'s `readers` list every semantic model that names the gold table, one entry per
-  model, across every tree. Check each model's M partition in **both** `fabric-core` (`main` and `hq_live`, independent live content) and
-  `fabric-secondary` (`regional_main` and `main`).
+  model, across every tree. Check each model's M partition in every Fabric repo and every mirrored
+  branch (a repo with two Prod branches holds two independent live content sets).
 - Record `repo · branch · model path · table`. Each model's `.pbir` files give the bound report(s).
 - Never assume one repo/branch represents another. Never skip this step because you started from a
   Fabric table: a gold table often feeds more than one model.
 
-## Record it in `docs/ai/lineage-map.md`
+## Record it in `docs/ai/client/lineage-map.md`
 
 Every trace, including a "quick check", updates the map. Append or update a row:
 `PBI model table | Gold table | Producing notebook | ADF pipeline/trigger | Status`.

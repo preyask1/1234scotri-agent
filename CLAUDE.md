@@ -1,8 +1,7 @@
 # Scotri — workspace guide
 
 A **near-total-read-only**, headless-server Claude Code workspace for an enterprise data platform
-(**ADF → Databricks → Power BI/Fabric**). The platform shipped in `docs/ai/` and
-`services/config/` is a fictional retailer, **Acme Retail**; swap those files for your own estate. It reads tickets, analyzes impact, plans in prose and runs
+(**ADF → Databricks → Power BI/Fabric**). It reads tickets, analyzes impact, plans in prose and runs
 read-only validation queries against a read-only mirror of every Prod branch. It has no product-repo
 write path at all; its one write is the confirm-gated `jira-write` (comment / edit-own-comment /
 create-Bug / attach-file). Everything else stops at paper and query results. The workspace is one
@@ -12,7 +11,11 @@ self-contained, portable folder with no dependency on where sibling workspaces l
 
 @agent-instructions.md
 
-## Command reference — exact flags, repo keys, output paths
+## This deployment — your name, catalogs, projects, repo keys, components
+
+@docs/ai/client/client.md
+
+## Command reference — exact flags, output paths
 
 @docs/ai/command-reference.md
 
@@ -36,15 +39,18 @@ engagements load these instructions directly.
 
 ## Where to look
 
-- [`docs/ai/repo-registry.md`](docs/ai/repo-registry.md) — which repos/branches exist and how each is
-  read. Check it first; it changes mid-migration.
-- [`docs/ai/`](docs/ai/) — domain knowledge (tables, conventions, lineage). Where an older doc says
-  "open `../fabric-core/...`", read the same relative path from the mirror instead.
+- [`docs/ai/client/repo-registry.md`](docs/ai/client/repo-registry.md) — which repos/branches exist and how each is
+  read. Check it first.
+- [`docs/ai/client/`](docs/ai/client/) — this client's domain knowledge (architecture, conventions,
+  lineage). [`docs/ai/`](docs/ai/) — how the tools work, the same for every client.
 - [`OPEN_ITEMS.md`](OPEN_ITEMS.md) — the decision log's index. Numbered references in code comments
   (`OPEN_ITEMS.md #N`) point at items in it; record new decisions there.
 
 ## Maintaining this workspace
 
+- Client-specific files (`client/profile.yaml`, `services/config/*.yaml`, `docs/ai/client/`) come
+  from `python -m app.setup` (see [`SETUP.md`](SETUP.md)). Generated ones say so in their header:
+  change the profile and re-render instead of editing them.
 - Committing and pushing **this workspace's own repo** is ordinary maintenance, done only when the
   user asks (see the carve-out in `agent-instructions.md`). Product repos and the mirror: never.
 - No real credentials in git. Only `services/.env.example` (placeholder names) is tracked; real values

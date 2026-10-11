@@ -8,7 +8,7 @@ operation exists here, matching the SELECT-only / query-only posture everywhere 
 Databricks (agent-instructions.md).
 
 Prod workspace only for now — the single configured connection (DATABRICKS_HOST), matching the ADF
-reader's Prod-factory-only decision. The separate second workspace (adb-2222222222222222) is a
+reader's Prod-factory-only decision. The separate second workspace (<secondary workspace host>) is a
 still-pending access request tracked in OPEN_ITEMS.md decision 4 and is deliberately NOT reachable
 from here.
 """

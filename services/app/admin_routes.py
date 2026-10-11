@@ -85,7 +85,7 @@ ROLE_SETTINGS = ("ADMIN_ROLES", "HISTORY_ADMIN_ROLES", "FILE_READER_ROLES", "VER
 
 class MirrorSyncRequest(BaseModel):
     repo_key: str
-    """A key from the repo registry, e.g. "databricks" or "fabric_core"."""
+    """A key from the repo registry, e.g. "databricks" or "adf"."""
     branch: str | None = None
     """One mirrored branch of that key; omitted means every mirrored branch of it."""
 
@@ -549,7 +549,11 @@ def _mirror(c) -> dict:
 
 
 def _config(c) -> dict:
+    client = getattr(c, "client_config", None)
     return {
+        "client": ({"display_name": client.display_name, "client_name": client.client_name,
+                    "components": sorted(client.components), "catalogs": list(client.catalogs)}
+                   if client is not None else None),
         "auth_mode": c.secrets.get_optional("SCOTRI_AUTH_MODE", "prod") or "prod",
         "settings": {name: bool(c.secrets.get_optional(name)) for name in CONFIG_FLAGS},
         "roles": {name: sorted(c.role_set(name)) for name in ROLE_SETTINGS},

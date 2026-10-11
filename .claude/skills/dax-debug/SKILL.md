@@ -13,7 +13,7 @@ resolution and the governor sequence itself. Never build a REST or XMLA call you
 
 What a measure returns **right now** in the **published** model: validating an impact-analysis
 hypothesis, spot-checking a number a ticket disputes, or reading a live dataset parameter
-(`CatalogName`, `KeepListParam`) the repo's `expressions.tmdl` may have drifted from.
+(`CatalogName`, a scope list) the repo's `expressions.tmdl` may have drifted from.
 
 - **Published models only.** TMDL read via `fabric-read` is source, never something to evaluate DAX
   against. No offline PBIP folder, no PBI Desktop session.
@@ -21,25 +21,19 @@ hypothesis, spot-checking a number a ticket disputes, or reading a live dataset 
 
 ## Picking the workspace
 
-Workspace depends on the repo and branch the model is published from. Use the verified table in
-`docs/ai/repo-map.md`:
+Workspace depends on the repo and branch the model is published from. Use the workspace table in
+`docs/ai/client/client.md` ("Fabric workspaces"); a repo/branch with no row there is not git-synced to
+a workspace you can name, so hand back rather than guess.
 
-| Repo · branch | Workspace |
-|---|---|
-| `fabric-core` · `main` | `ACME-Fabric-Prod-Workspace` |
-| `fabric-core` · `hq_live` | `ACME-Fabric-HO-Production-Workspace` |
-| `fabric-secondary` · `regional_main` | `ACME-Fabric-PROD-Workspace_2` |
-| `fabric-secondary` · `main` | `ACME-Fabric-QA-Workspace_2` |
-
-Never use the model's TMDL `WorkspaceName`/`Workspace` parameter (e.g. `"Acme-QA"`): it is stale
-and returns `PowerBIEntityNotFound`.
+Never use the model's TMDL `WorkspaceName`/`Workspace` parameter: it can be a stale label and then
+returns `PowerBIEntityNotFound`.
 
 ## Tenant
 
 `FABRIC_TENANT_ID` must be the Fabric/PBI (BI) tenant, not the data tenant that holds Azure DevOps,
 ADF and Databricks, when the two differ. A wrong tenant is the
 commonest silent failure: `{"ok": false}` with a message naming HTTP 203 or an HTML response. That
-means a wrong tenant, **not** an empty result (see `docs/ai/repo-map.md`).
+means a wrong tenant, **not** an empty result (see `docs/ai/client/repo-map.md`).
 
 ## Procedure
 

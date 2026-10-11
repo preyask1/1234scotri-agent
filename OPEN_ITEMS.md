@@ -54,10 +54,16 @@ Status: `Open`, `Partial`, `Parked` (decided to wait), `Done`.
 | #30 | Databricks job/notebook run reader (`job-runs`, `job-run-detail`). | Done |
 | #31 | Mirror staleness is reported on every read (`freshness.warning`); it warns, never refuses. | Done |
 | #35 | ADF trigger-run reader: tells "never triggered" apart from "triggered and failed". | Done |
-| #37 | **Lineage graph index**: `docs/ai/lineage-graph.yaml` is authoritative, built into a SQLite index, queried by `lineage-trace`/`lineage-coverage`. Unverified edges are first-class. | Done |
+| #37 | **Lineage graph index**: `docs/ai/client/lineage-graph.yaml` is authoritative, built into a SQLite index, queried by `lineage-trace`/`lineage-coverage`. Unverified edges are first-class. | Done |
 | #38 | Lexical (BM25) retrieval over past engagements, learnings and docs. A ranker, never a candidate generator for impact analysis. | Done |
 | #41 | Jira `issuetype` is authoritative for routing (Bug → verdict first; anything else → Story path). | Done |
 | #42 | Jira attachments: governed download (text extracted, redacted, raw-data exports refused) and upload via `jira-write`. | Done |
+
+## Deployment
+
+| ID | Decision | Status |
+|---|---|---|
+| #71 | **White-label deployments.** One engine, one private repo per client created from the template. Everything client-specific comes from `client/profile.yaml` through `python -m app.setup` (`init`/`render`/`secrets`/`doctor`/`bootstrap`); generated files live only in the client's repo, so upstream merges never conflict. ADF and Fabric are optional components (`domain/client_config.py` gates their commands); the display name and logo brand the admin panel, portal and API title; "Scotri" stays the engine and code name. See `SETUP.md`. | Done |
 
 ## Learning loop
 

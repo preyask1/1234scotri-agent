@@ -162,7 +162,7 @@ def run_governed_write(
 
     What it DOES do is emit the same governor audit line reads/queries emit (logger `scotri.
     governed_call`, which propagates to `logs/scotri-cli.log`), so a Jira write finally leaves a
-    trace on this host — the ACME-2085 comment (id 113081) left none, which is what raised #29. The
+    trace on this host — the PROJ-2085 comment (id 113081) left none, which is what raised #29. The
     audit line records who, which backend, which action, the duration, and the outcome — never the
     written content itself (that would put the very payload the redactor strips back into the log)."""
     start = time.monotonic()

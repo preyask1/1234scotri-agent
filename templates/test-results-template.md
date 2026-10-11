@@ -5,7 +5,7 @@
 | Ticket | <JIRA key + link> |
 | Test plan | `templates/test-plan-template.md` instance for this ticket |
 | Run by | Scotri (read-only, unattended) |
-| Environment | `acme_prod`/`acme_dev` (read-only, service-principal M2M) / Fabric workspace `<name>` (published model, read-only XMLA) |
+| Environment | `<prod_catalog>`/`<dev_catalog>` (read-only, service-principal M2M) / Fabric workspace `<name>` (published model, read-only XMLA) |
 
 ## Results
 

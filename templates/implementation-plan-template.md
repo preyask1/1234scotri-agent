@@ -22,7 +22,7 @@
 
 | # | Repo | File / model / measure / parameter | Change | Risk | Independently verified this phase? |
 |---|------|--------------------------------------|--------|------|--------------------------------------|
-| 1 | Fabric (`fabric-core`/`fabric-secondary`) | `<Area>/<Model>.SemanticModel/definition/tables/<t>.tmdl` | <measure/column/RLS change> | Low/Med/High | Yes — fetched via `fabric-read` |
+| 1 | Fabric (`<repo_key>`) | `<Area>/<Model>.SemanticModel/definition/tables/<t>.tmdl` | <measure/column/RLS change> | Low/Med/High | Yes — fetched via `fabric-read` |
 | 2 | Databricks | `<notebook path, e.g. Gold_Notebooks/<SOURCE>/Wave<N>/USP_*.ipynb>` | <transformation-logic change, backed by the notebook's actual join/filter/grouping read> | Low/Med/High | Yes — read via `adf-databricks-read`, corroborated by a live `databricks-query` schema/sample |
 | 3 | ADF | `<pipeline/dataset/trigger path>` | <Copy-activity mapping / trigger-schedule change, backed by the actual JSON read> | Low/Med/High | Yes — read via `adf-databricks-read` |
 

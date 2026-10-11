@@ -5,7 +5,7 @@ at dead centre.
 
 | Element | What it carries |
 |---|---|
-| The aperture | Scotri's entire job is to look — across four repos, at Prod, at the live data behind them. |
+| The aperture | Scotri's entire job is to look — across every repo, at Prod, at the live data behind them. |
 | The open seam | The two arcs are 180°-rotationally symmetric and deliberately leave two gaps. The loop never closes: the work stops at paper, it never becomes a write. |
 | The pupil | The single verified finding a whole investigation lands on. It is the only filled element in the mark. |
 

@@ -43,7 +43,7 @@ _REDACTED = "***REDACTED***"
 
 def _win_long_path(path: Path) -> str:
     """The `\\\\?\\` prefix bypasses Windows' 260-character MAX_PATH limit for file APIs. Applied
-    to every rmtree call — confirmed 2026-09-17: hq_live's deeply-nested Fabric folder names
+    to every rmtree call — confirmed 2026-09-17: a Fabric repo's deeply-nested folder names
     (e.g. `.../StaticResources/RegisteredResources/<long-generated-name>.json`) exceed MAX_PATH
     and Python's own os.unlink/os.rmdir hit it too, not just git's checkout."""
     if os.name == "nt":
@@ -231,7 +231,7 @@ class GitMirrorSyncTarget:
         URL-embedded PAT is the only credential source, always.
         """
         # core.longpaths=true: Fabric repos nest Semantic Model / Report folders deep enough to
-        # exceed Windows' default 260-character path limit — confirmed 2026-09-17, hq_live's
+        # exceed Windows' default 260-character path limit — confirmed 2026-09-17, a Fabric repo's
         # checkout failed partway through with "Filename too long" without this. Applied to every
         # command below, not just clone, since a reset --hard checks files out too.
         staging_path = self._staging_path(repo, branch)

@@ -1,7 +1,7 @@
 """Replay a fixed set of prompts against a running Scotri API and record how each run went.
 
     services/.venv/Scripts/python.exe tools/benchmark/run_benchmark.py              # every case
-    services/.venv/Scripts/python.exe tools/benchmark/run_benchmark.py --case bug-acme1922
+    services/.venv/Scripts/python.exe tools/benchmark/run_benchmark.py --case <case id>
     services/.venv/Scripts/python.exe tools/benchmark/run_benchmark.py --report-only tools/benchmark/results/<file>.json
 
 Talks to the API over HTTP only (POST /v1/chat, GET /v1/chat/{id}, /steps, /v1/learnings/{id}), so
@@ -31,7 +31,9 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-CASES = HERE / "cases.json"
+CASES = HERE.parents[1] / "client" / "benchmark-cases.json"
+"""Client-owned: the cases name this client's tickets and tables. Example:
+examples/acme-retail/client/benchmark-cases.json."""
 RESULTS = HERE / "results"
 SCRATCH = ROOT / "scratch"
 STASH = SCRATCH / ".benchmark-stash"
@@ -285,6 +287,9 @@ def main() -> None:
         print(report(run, baseline))
         return
 
+    if not CASES.is_file():
+        sys.exit(f"{CASES} does not exist. Copy examples/acme-retail/client/benchmark-cases.json there and "
+                 f"replace the prompts with this client's own tickets and tables.")
     cases = json.loads(CASES.read_text(encoding="utf-8"))["cases"]
     if args.case:
         unknown = set(args.case) - {c["id"] for c in cases}

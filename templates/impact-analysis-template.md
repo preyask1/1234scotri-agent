@@ -5,7 +5,7 @@
 | Ticket | <JIRA key + link> |
 | Date | <YYYY-MM-DD> |
 | Starting artifact | <gold table / PBI table / measure / report named in the requirement> |
-| Scope this run | **All four repos** — `adf`, `databricks`, `fabric-core`, `fabric-secondary` — read from the local read-only mirror, corroborated by governed live Databricks queries |
+| Scope this run | **Every repo in the registry** (list the repo keys checked) — read from the local read-only mirror, corroborated by governed live Databricks queries |
 | Presence check | <existing claim found on this ticket/entity? who, since when — or "none"> |
 
 ## 1. ADF — pipeline/trigger facts (read from the mirror via `adf-databricks-read`)
@@ -20,11 +20,11 @@
 |---|---|---|---|---|
 | `<table>` | `<USP_*/NB_*/VW_* path>` | <join/filter/grouping summary, Wave<N>, SCD2 pattern if any> | <from `DESCRIBE`/`COUNT`/sample> | Yes / **No — see note** |
 
-## 3. Fabric — downstream consumers (BOTH repos, BOTH live branches of fabric-core)
+## 3. Fabric — downstream consumers (EVERY Fabric repo, EVERY mirrored branch)
 
 | Instance | Repo | Branch | Model path | Table | Format (legacy/PBIR) | Measure(s) affected | Report(s) |
 |---|---|---|---|---|---|---|---|
-| 1 | `fabric-core` | `main` | `<Area>/<Model>.SemanticModel` | `<table>` | <legacy/PBIR> | `<measure>` | `<report>` |
+| 1 | `<repo_key>` | `<branch>` | `<Area>/<Model>.SemanticModel` | `<table>` | <legacy/PBIR> | `<measure>` | `<report>` |
 
 *Mirror paths read to produce the above table, pasted:*
 ```
@@ -52,8 +52,8 @@
 - <gap> — `[BLOCKING]` / `[non-blocking]`
 
 ## 8. Overall blast-radius summary
-<2-3 sentences: how contained is the change across all four repos, and whether anything (a
+<2-3 sentences: how contained is the change across every repo, and whether anything (a
 notebook/live-data disagreement, an unreachable read) affects confidence in the picture.>
 
 ## 9. Lineage-map updates made
-- <row added/updated in docs/ai/lineage-map.md, or "none needed — already mapped">
+- <row added/updated in docs/ai/client/lineage-map.md, or "none needed — already mapped">

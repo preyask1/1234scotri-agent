@@ -42,7 +42,7 @@ services/mirror/status.json
 # never meant to be versioned (see services/FRONTEND_AUTH.md's own note on this).
 services/FRONTEND_AUTH.md
 
-# Scotri investigation verdicts (e.g. investigations/ACME-2074/) -- ticket-specific working output
+# Scotri investigation verdicts (e.g. investigations/PROJ-2074/) -- ticket-specific working output
 # that can quote business data; local only, never source.
 investigations/
 

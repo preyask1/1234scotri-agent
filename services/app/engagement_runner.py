@@ -101,6 +101,7 @@ class EngagementRunner:
                 artifact_store=c.artifact_store,
                 progress_store=c.progress_store,
                 grounding_evidence=getattr(c, "grounding_evidence", None),
+                grounding_catalogs=getattr(c, "grounding_catalogs", ()),
                 release_claims=getattr(c, "release_run_claims", None),
             )
         finally:

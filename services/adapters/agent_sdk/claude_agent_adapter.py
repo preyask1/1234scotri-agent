@@ -62,14 +62,14 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MAX_TURNS = 150
 """Turn ceiling per run (OPEN_ITEMS.md #33). The largest single engagement measured on 2026-10-08
-took 43 tool calls (a ACME-2118 bug investigation): 150 leaves room for a full Story lifecycle with
+took 43 tool calls (a PROJ-2118 bug investigation): 150 leaves room for a full Story lifecycle with
 every test run, and stops a looping run long before the wall clock does."""
 
 ENGAGEMENT_WALL_CLOCK_TIMEOUT_SECONDS = 20 * 60
 """Default wall-clock ceiling for one engagement run (OPEN_ITEMS.md #33, decided 2026-10-01).
 
 A full lifecycle (intake -> verdict -> four-repo impact -> plan -> executed tests -> handoff) is
-inherently multi-minute — the ACME-2085 run was ~10m38s — so this is ~2x headroom, not a tight budget.
+inherently multi-minute — the PROJ-2085 run was ~10m38s — so this is ~2x headroom, not a tight budget.
 Its job is to stop a *hung* run from spinning turns/time forever with no human watching (the webhook/
 scheduled-sweep trigger paths, #7), not to cut short legitimate long work. On expiry the run is
 stopped and reported as a non-success terminal outcome (is_error + incomplete), never a silent hang
@@ -87,7 +87,7 @@ The SDK terminates the CLI subprocess as soon as the message iterator ends (its 
 top-level turn returns text. A background subagent spawned via `Agent` is therefore killed the
 instant Scotri says "I'll report back when it completes", and its work never happens. The turn
 itself looks perfectly successful, so the engagement lands as SUCCEEDED with a promise as its
-result. Observed on ACME-2085 (2026-09-28): three engagements, two silent stalls, no presence claim
+result. Observed on PROJ-2085 (2026-09-28): three engagements, two silent stalls, no presence claim
 ever registered, no deliverable produced.
 
 That pattern is fine in an interactive session, where the parent outlives the child and a
@@ -100,7 +100,7 @@ MAX_STREAM_MESSAGE_BYTES = 64 * 1024 * 1024
 
 A `Read` of an image or PDF comes back as one message carrying the file base64-encoded, so a
 ticket attachment of a few hundred KB already crosses 1 MB, and the SDK then kills the whole run
-with "JSON message exceeded maximum buffer size". Observed on ACME-2129 (2026-10-08): the run read a
+with "JSON message exceeded maximum buffer size". Observed on PROJ-2129 (2026-10-08): the run read a
 587 KB PDF attachment and crashed. 64 MB clears the API's own 32 MB request ceiling with room for
 base64 overhead."""
 
@@ -197,7 +197,7 @@ def _written_paths(message) -> list[str]:
 def _top_level_text(message) -> list[str]:
     """The text blocks of one top-level assistant message. ResultMessage.result carries only the
     turn's LAST text block, so an answer given mid-run, before more tool calls, was dropped from the
-    stored result. Engagement 2577baf2 (ACME-2052, 2026-10-05) answered the user's question, then ran a
+    stored result. Engagement 2577baf2 (PROJ-2052, 2026-10-05) answered the user's question, then ran a
     batch and summarised that, and only the summary was kept. Subagent messages (parent_tool_use_id
     set) are skipped: they aren't the turn's own words."""
     if not isinstance(message, AssistantMessage) or message.parent_tool_use_id is not None:

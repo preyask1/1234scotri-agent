@@ -1,6 +1,7 @@
 # Benchmark
 
-Replays the fixed prompts in `cases.json` against a running Scotri API, one at a time, and records how
+Replays the fixed prompts in `client/benchmark-cases.json` (client-owned; an example is in
+`examples/acme-retail/client/`) against a running Scotri API, one at a time, and records how
 each run went, so a change to the instructions, skills or code comes with before/after numbers
 (OPEN_ITEMS.md #68).
 
@@ -43,4 +44,4 @@ case that lost reads to the limit is marked RATE-LIMITED in the report and isn't
 
 **Reading the numbers.** Live data, the mirror and the tickets change between runs, so treat one
 run's delta as a signal. A change that holds across two or three runs is real. Keep prompts in
-`cases.json` stable; editing one starts a new baseline for that case.
+`client/benchmark-cases.json` stable; editing one starts a new baseline for that case.

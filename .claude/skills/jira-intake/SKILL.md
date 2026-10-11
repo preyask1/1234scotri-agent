@@ -1,6 +1,6 @@
 ---
 name: jira-intake
-description: "Read a JIRA story, bug or change request (project ACME and the Insights/dashboard family) read-only: description, comments and attachments, restated as a structured requirement with an explicit gaps-and-ambiguities section. Use when: start work on a ticket, read this JIRA story, intake a change request, what does this ticket ask for, pull BRD attachment from JIRA."
+description: "Read a JIRA story, bug or change request (the projects listed in docs/ai/client/client.md) read-only: description, comments and attachments, restated as a structured requirement with an explicit gaps-and-ambiguities section. Use when: start work on a ticket, read this JIRA story, intake a change request, what does this ticket ask for, pull BRD attachment from JIRA."
 ---
 
 # JIRA intake (read-only)
@@ -35,7 +35,7 @@ multi-site routing, which this workspace doesn't use.
    reading of the body:
    - `Bug` → bug path: `bug-investigation` first (a verdict before assuming any change is needed).
    - `Story`/`Task` → story path: straight to `impact-analysis`.
-   - Unrecognised/custom type (Insights/dashboard-family projects may not use Story/Task/Bug) → story
+   - Unrecognised/custom type (some projects don't use Story/Task/Bug) → story
      path; record that choice in Gaps. Don't ask.
    - Body reads like the other type (a "Story" that's a defect, a "Bug" that's a new capability) →
      a remark in Gaps only. Never change the path, hedge or ask.
@@ -56,7 +56,7 @@ multi-site routing, which this workspace doesn't use.
      pipeline or report exists, is missing or has a certain shape, check it: `databricks-select ...
      DESCRIBE TABLE` for tables/columns, `mirror-find`/`mirror-grep` for notebooks, pipelines and
      reports, several at once in one `batch`. A column list in the ticket ("Key Columns", a source
-     summary) is someone's summary, not the schema. On ACME-2052 a "missing" column taken from such a
+     summary) is someone's summary, not the schema. On PROJ-2052 a "missing" column taken from such a
      cell was posted as a blocking gap; one `DESCRIBE TABLE` showed it existed.
    - If you can't check (governor rejecting, mirror mid-sync, Dev not named), keep the gap labelled
      `unverified — from the ticket text only`, and don't tag it `[BLOCKING]` on that basis alone.

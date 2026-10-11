@@ -13,7 +13,7 @@ from tracing the same bug or drafting conflicting plans for one ticket without k
 Stored in the same coordination store as the query governor's state:
 
 ```
-{ ticket_or_entity: "ACME-1234" | "gold.sales_summary" | "USP_BuildSalesGold",
+{ ticket_or_entity: "PROJ-1234" | "gold.sales_summary" | "USP_BuildSalesGold",
   user: "<requesting user>",
   started_at: "<timestamp>",
   last_heartbeat: "<timestamp>" }
@@ -26,7 +26,7 @@ model/report name.
 
 1. Check for a claim on the ticket/entity.
 2. If one exists and is fresh (heartbeat within the TTL), surface it and ask before proceeding:
-   > "Data.Engineer2 has been investigating ACME-1234 for the last 12 minutes — proceed anyway?"
+   > "Data.Engineer2 has been investigating PROJ-1234 for the last 12 minutes — proceed anyway?"
 3. If the user proceeds, note in the work order/report that a concurrent investigation was in
    progress, so the findings can be reconciled later.
 4. If there is no claim, or it has expired, register one. Inside an engagement `--owner` is

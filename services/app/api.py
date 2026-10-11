@@ -11,7 +11,7 @@ app/mcp_server.py's MCP tools mirror); /v1/engagements (added 2026-09-24, reconc
 earlier, since-abandoned api-service branch's ticket-shaped design) takes a bare `ticket_key` and is
 purely a narrower INPUT shape, not a behaviorally-restricted one — it converts ticket_key into the
 same free-form prompt Scotri already knows how to read (see CLAUDE.md: "Give it a Jira ticket, e.g.
-ACME-2041") and calls the exact same start_engagement/run_engagement /v1/chat does. No second
+PROJ-2041") and calls the exact same start_engagement/run_engagement /v1/chat does. No second
 Engagement/InteractionLogEntry shape: `Engagement.prompt` stays the one canonical field so
 app/mcp_server.py and app/cli.py, both already built against it, don't have to know this endpoint
 exists. /v1/engagements additionally checks presence-claim and returns an advisory
@@ -105,7 +105,19 @@ async def lifespan(_app: FastAPI):
     runner.stop_ticking()
 
 
-app = FastAPI(title="Scotri agent-service", lifespan=lifespan)
+def _client_config():
+    """The deployment's client settings; engine defaults if config/client.yaml is missing or broken,
+    so a bad branding file can never take the API down."""
+    from domain.client_config import DEFAULT_CLIENT_CONFIG
+
+    try:
+        return container.client_config
+    except Exception:  # noqa: BLE001
+        logger.exception("config/client.yaml could not be read; using engine defaults")
+        return DEFAULT_CLIENT_CONFIG
+
+
+app = FastAPI(title=f"{_client_config().display_name} agent-service", lifespan=lifespan)
 
 _CATEGORY_TO_STATUS = {
     ErrorCategory.CREDENTIAL: 401,
@@ -237,7 +249,43 @@ def developer_portal() -> Response:
     so its "Try it" console calls this API same-origin, without a CORS allowance."""
     if not PORTAL_PAGE.is_file():
         raise HTTPException(status_code=404, detail="Developer portal page is not deployed")
-    return Response(content=PORTAL_PAGE.read_bytes(), media_type="text/html; charset=utf-8")
+    return Response(content=_branded(PORTAL_PAGE), media_type="text/html; charset=utf-8")
+
+
+LOGO_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+              ".webp": "image/webp"}
+
+
+def _logo_path() -> Path | None:
+    """The configured logo, only if it is an image file under client/brand/ (never anything else on
+    disk, whatever config/client.yaml says)."""
+    logo = _client_config().logo
+    if not logo:
+        return None
+    brand_dir = (SERVICES_ROOT.parent / "client" / "brand").resolve()
+    path = (SERVICES_ROOT.parent / logo).resolve()
+    if brand_dir not in path.parents or path.suffix.lower() not in LOGO_TYPES or not path.is_file():
+        return None
+    return path
+
+
+def _branded(page: Path) -> bytes:
+    """A static page with the deployment's display name and logo (domain/branding.py)."""
+    from domain.branding import LOGO_ROUTE, brand_html
+
+    logo = LOGO_ROUTE if _logo_path() else None
+    return brand_html(page.read_text(encoding="utf-8"), _client_config().display_name, logo).encode("utf-8")
+
+
+@app.get("/brand/logo", include_in_schema=False)
+def brand_logo() -> Response:
+    """The deployment's logo (client/brand/, set in client/profile.yaml). Unauthenticated, like the
+    pages that show it."""
+    path = _logo_path()
+    if path is None:
+        raise HTTPException(status_code=404, detail="No logo is configured")
+    return Response(content=path.read_bytes(), media_type=LOGO_TYPES[path.suffix.lower()],
+                    headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "max-age=300"})
 
 
 @app.post("/v1/chat", status_code=202)
@@ -765,6 +813,6 @@ def admin_page() -> Response:
     It asks for a bearer token and calls /v1/admin/*, where every route checks ADMIN_ROLES itself."""
     if not ADMIN_PAGE.is_file():
         raise HTTPException(status_code=404, detail="Admin page is not deployed")
-    return Response(content=ADMIN_PAGE.read_bytes(), media_type="text/html; charset=utf-8",
+    return Response(content=_branded(ADMIN_PAGE), media_type="text/html; charset=utf-8",
                     headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "no-store",
                              "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer"})

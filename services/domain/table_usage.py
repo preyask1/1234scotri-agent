@@ -3,12 +3,12 @@ functions: no filesystem, no network. The CLI hands in each file's text view (no
 cells, so line numbers match `mirror-read --as-text --lines`).
 
 Why this exists: "which notebook builds this table, and what reads it" is the first question of most
-investigations. On ACME-2118 it took four mirror-grep calls and a whole-notebook read. One pass here
+investigations. On PROJ-2118 it took four mirror-grep calls and a whole-notebook read. One pass here
 classifies every line that names the table as a write, a read or a mention, and groups the hits by
 file with the notebook cell they sit in, so the agent reads only the lines that matter.
 
 Matching is on the table's last name segment, with word boundaries, because code names tables many
-ways (`acme_prod.gold.x`, `gold.x`, f"{catalog}.gold.x", saveAsTable("x")). The classification is a
+ways (`<prod_catalog>.gold.x`, `gold.x`, f"{catalog}.gold.x", saveAsTable("x")). The classification is a
 heuristic on the matching line: treat it as where to look, not as proof.
 """
 from __future__ import annotations

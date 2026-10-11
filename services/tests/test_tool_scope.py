@@ -24,7 +24,7 @@ PY = "services/.venv/bin/python"
 # --- file writes -------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("path", ["scratch/ACME-1-intake.md", "proposals/ACME-1/fix.patch",
-                                  "investigations/x.md", "docs/ai/lineage-map.md", "scratch/uploads/j/a.txt"])
+                                  "investigations/x.md", "docs/ai/client/lineage-map.md", "scratch/uploads/j/a.txt"])
 def test_writes_inside_the_allowlist_pass(root, path):
     assert check_write_path(path, root) is None
     assert check_write_path(os.path.join(root, path), root) is None
@@ -37,7 +37,7 @@ def test_writes_inside_the_allowlist_pass(root, path):
     "services/.env",
     ".claude/skills/jira-write/SKILL.md",
     "agent-instructions.md",
-    "docs/ai/lineage-graph.yaml",                              # only lineage-map.md is writable in docs/
+    "docs/ai/client/lineage-graph.yaml",                              # only lineage-map.md is writable in docs/
     "scratch/../services/app/cli.py",                          # traversal out of scratch/
     "scratchpad/x.md",                                         # prefix, not the folder
     "/etc/passwd",
