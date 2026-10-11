@@ -151,3 +151,7 @@ See [`services/README.md`](services/README.md): Redis, a filled-in `services/.en
 | [`templates/`](templates/) | verdict, impact-analysis, plan, test and handoff templates |
 | [`tools/`](tools/) | benchmark harness and a local launcher |
 | [`OPEN_ITEMS.md`](OPEN_ITEMS.md) | decision log index referenced from code comments |
+
+## License
+
+[MIT](LICENSE)
