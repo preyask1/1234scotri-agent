@@ -1429,8 +1429,10 @@ def cmd_jira_comment(args: argparse.Namespace) -> int:
         body = getattr(args, "body", None)
         body_file = getattr(args, "body_file", None)
         if body_file:
-            with open(body_file, encoding="utf-8") as fh:
-                body = fh.read()
+            # Same source rule as jira-attach: only Scotri's own output or the caller's uploads, so
+            # a comment can never carry services/.env or a mirror file off this host.
+            body = prepare_upload(WORKSPACE_ROOT, body_file).data.decode("utf-8", errors="replace")
+        body = redact_secrets(body) if body else body
         if not body:
             _print_error(ErrorCategory.POLICY.value, "refused: empty comment body.")
             return 1
@@ -1444,6 +1446,9 @@ def cmd_jira_comment(args: argparse.Namespace) -> int:
                 user=args.user, backend=Backend.JIRA, action=f"comment:{args.key}",
                 execute=lambda: container.jira_writer.add_comment(args.key, body),
             )
+    except ScotriError as e:  # a refused --body-file
+        _print_error(e.category.value, e.user_message)
+        return 1
     except Exception as e:  # noqa: BLE001 — writer adapter doesn't yet raise ScotriError itself
         _print_error(_categorize_generic_exception(e).value, str(e))
         return 1
@@ -1463,7 +1468,8 @@ def cmd_jira_edit_comment(args: argparse.Namespace) -> int:
         run_governed_write(
             user=args.user, backend=Backend.JIRA,
             action=f"edit-comment:{args.key}:{args.comment_id}",
-            execute=lambda: container.jira_writer.update_comment(args.key, args.comment_id, args.body),
+            execute=lambda: container.jira_writer.update_comment(
+                args.key, args.comment_id, redact_secrets(args.body)),
         )
     except Exception as e:  # noqa: BLE001
         _print_error(_categorize_generic_exception(e).value, str(e))
@@ -1482,7 +1488,8 @@ def cmd_jira_create_bug(args: argparse.Namespace) -> int:
     try:
         issue_key = run_governed_write(
             user=args.user, backend=Backend.JIRA, action=f"create-bug:{args.project}",
-            execute=lambda: container.jira_writer.create_bug(args.project, args.summary, args.description),
+            execute=lambda: container.jira_writer.create_bug(
+                args.project, redact_secrets(args.summary), redact_secrets(args.description)),
         )
     except Exception as e:  # noqa: BLE001
         _print_error(_categorize_generic_exception(e).value, str(e))
@@ -2049,7 +2056,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_jcomment_body = p_jcomment.add_mutually_exclusive_group(required=True)
     p_jcomment_body.add_argument("--body")
     p_jcomment_body.add_argument("--body-file", dest="body_file",
-                                 help="Read the exact, already-approved body from a UTF-8 file.")
+                                 help="Read the exact, already-approved body from a UTF-8 file under scratch/, proposals/ or investigations/.")
     p_jcomment.add_argument("--wiki", action="store_true",
                             help="Body is Jira wiki markup (formatting + [~accountid:...] mentions).")
     p_jcomment.add_argument("--confirmed", action="store_true")

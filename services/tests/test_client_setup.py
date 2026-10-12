@@ -195,3 +195,15 @@ def test_branding_renames_text_but_never_identifiers():
     assert '<link rel="icon" href="/brand/logo">' in out and '<img src="/brand/logo"' in out
     assert "<svg" not in out
     assert brand_html(page, "Scotri") == page
+
+
+@pytest.mark.parametrize("value", ["yes", "1.5", "2026-10-01", "12:30", "a b", "x: y", "#c", "acme_prod",
+                                   "https://x.y/z", "007", "", "it's", "line\nbreak", "1e5", "- a",
+                                   "00000000-0000-0000-0000-000000000000", True, None, 3])
+def test_generated_yaml_reads_back_as_the_same_value(value):
+    """domain/client_setup.py writes YAML with the stdlib (the domain layer has no third-party imports);
+    every scalar must read back unchanged, never as a bool, number, date or comment."""
+    from domain.client_setup import _block_yaml
+
+    data = {"k": value, "nested": [{"a": [value, {"b": value}]}, []], "empty": {}}
+    assert yaml.safe_load(_block_yaml(data)) == data

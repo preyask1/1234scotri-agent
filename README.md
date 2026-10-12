@@ -132,9 +132,9 @@ pip install -r requirements.txt
 python -m pytest -q
 ```
 
-651 tests cover the domain policy (governor limits, presence staleness, the SQL guard, tool scope,
-redaction, grounding, queueing, lineage, client profiles and rendering) and the CLI/API boundaries,
-using in-memory fakes.
+827 tests cover the domain policy (governor limits, presence staleness, the SQL guard, tool scope,
+redaction, grounding, queueing, lineage, client profiles and rendering), the CLI/API boundaries and
+the hexagonal boundary itself (`tests/test_architecture.py`), using in-memory fakes.
 
 ## Deploy for your organisation
 
@@ -168,6 +168,7 @@ python -m app.setup bootstrap   # first mirror sync + lineage index
 | [`examples/acme-retail/`](examples/acme-retail/) | a complete example client: profile, generated config and filled-in domain docs |
 | [`SETUP.md`](SETUP.md) | deploying for a new client |
 | [`docs/api.md`](docs/api.md), [`docs/developer/portal.html`](docs/developer/portal.html) | API reference and developer portal |
+| [`docs/stakeholder/scotri-whitelabel.html`](docs/stakeholder/scotri-whitelabel.html) | Stakeholder brief: capabilities, white-label model, hexagonal architecture |
 | [`services/`](services/) | the Python service: domain, ports, adapters, app, tests |
 | [`templates/`](templates/) | verdict, impact-analysis, plan, test and handoff templates |
 | [`tools/`](tools/) | benchmark harness and a local launcher |

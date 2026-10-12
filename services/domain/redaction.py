@@ -20,12 +20,18 @@ _REDACTED = "[REDACTED]"
 # `NAME=value` / `NAME: value` / `"name": "value"` where NAME says it's a secret. Covers the common
 # credential-assignment shapes AND the Azure/connection-string keys SQL-migration notebooks carry
 # (AccountKey, SharedAccessKey, SAS `sig`, connection-string Password/Pwd) — OPEN_ITEMS.md #34.
+# `sig` (the SAS signature parameter) only as a whole segment of the key (`sig`, `x-sig`,
+# `url_signature`): as a bare substring it also matched `designation`, `assignment` and `signal`, and
+# "Designation" is a core field-force dimension in tickets and notebooks here.
 _SECRET_ASSIGNMENT = re.compile(
     r"""(?ix)
-    (?P<key>[\w.-]*(?:
-        secret | token | password | passwd | pwd | api[_-]?key | access[_-]?key |
-        client[_-]?secret | credential | accountkey | sharedaccesskey | sig
-    )[\w.-]*)
+    (?P<key>
+        [\w.-]*(?:
+            secret | token | password | passwd | pwd | api[_-]?key | access[_-]?key |
+            client[_-]?secret | credential | accountkey | sharedaccesskey
+        )[\w.-]*
+      | (?<![A-Za-z0-9])(?:[\w.-]*[_.-])?sig(?:nature)?(?:[_.-][\w.-]*)?(?![A-Za-z0-9])
+    )
     (?P<sep>["']?\s*[:=]\s*["']?)
     (?P<value>[^\s"',;}]{4,})
     """

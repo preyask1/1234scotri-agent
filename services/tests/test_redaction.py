@@ -59,3 +59,13 @@ def test_redaction_keeps_json_valid():
     parsed = json.loads(redacted)  # must still parse
     assert "SECRETVALUE123456" not in parsed["content"]
     assert parsed["ok"] is True
+
+
+def test_sig_only_matches_as_its_own_key_segment():
+    """`sig` is the SAS signature parameter; as a bare substring it used to redact `designation`,
+    a core field-force dimension, along with `assignment` and `signal`."""
+    assert redact_secrets("Designation: Regional Manager") == "Designation: Regional Manager"
+    assert redact_secrets('"designation_code": "RSM01"') == '"designation_code": "RSM01"'
+    assert redact_secrets("assignment=ABCD1") == "assignment=ABCD1"
+    for secret in ("x-sig: abcdef12", "url_signature=abcdefgh", "?sv=2020&sig=aBcD1234"):
+        assert "[REDACTED]" in redact_secrets(secret), secret

@@ -66,7 +66,8 @@ records a write; it doesn't authorize one.
 jira-comment --key <KEY> --body "<exact approved text>" --confirmed
 ```
 Returns `comment_id`: record it if you might need to correct the comment later. `--body-file` reads a
-longer approved draft verbatim. Bodies are markdown (see Formatting). Use `--wiki` only when the
+longer approved draft from `scratch/`/`proposals/`/`investigations/`. Every write's text is
+secret-redacted before it is sent. Bodies are markdown (see Formatting). Use `--wiki` only when the
 approved text is itself Jira wiki markup (rare).
 
 **Edit own comment**

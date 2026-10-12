@@ -12,11 +12,10 @@ workspace root.
 """
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from string import Template
-
-import yaml
 
 from domain.client_config import COMPONENT_LABELS, OPTIONAL_COMPONENTS
 from domain.client_profile import interpreter_path
@@ -33,7 +32,59 @@ CLIENT_DOCS = "docs/ai/client"
 
 
 def _yaml(data: dict) -> str:
-    return YAML_HEADER + "\n" + yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=100)
+    return YAML_HEADER + "\n" + _block_yaml(data) + "\n"
+
+
+def _scalar(value) -> str:
+    """A YAML scalar. A string is written plain when it can't be misread (a bool, a number, a
+    comment, a mapping, a date); otherwise single-quoted as PyYAML writes it, or as a JSON string
+    (a valid YAML double-quoted scalar) when it holds a line break or a control character."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return repr(value)
+    text = str(value)
+    if (_PLAIN.fullmatch(text) and text.lower() not in _RESERVED and not _NUMBERLIKE.fullmatch(text)
+            and not _DATELIKE.fullmatch(text)):
+        return text
+    if "\n" in text or not text.isprintable():
+        return json.dumps(text, ensure_ascii=False)
+    return "'" + text.replace("'", "''") + "'"
+
+
+_PLAIN = re.compile(r"[A-Za-z0-9_/][A-Za-z0-9_./@()-]*(?: [A-Za-z0-9_./@()-]+)*")
+_DATELIKE = re.compile(r"\d{4}-\d{1,2}-\d{1,2}.*|\d+(:\d+)+.*")
+_RESERVED = {"y", "n", "yes", "no", "true", "false", "on", "off", "null", "~"}
+_NUMBERLIKE = re.compile(r"[-+]?(\d[\d_]*)?\.?\d*([eE][-+]?\d+)?|0[xob][0-9a-fA-F_]+")
+
+
+def _block_yaml(data, indent: int = 0) -> str:
+    """Block-style YAML for the dicts, lists and scalars a profile renders to. Stdlib only, so the
+    domain layer stays free of third-party imports (tests/test_architecture.py); the output is read
+    back with PyYAML in tests/test_client_setup.py."""
+    pad = " " * indent
+    lines: list[str] = []
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, (dict, list)) and value:
+                lines.append(f"{pad}{_scalar(key) if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_-]*', str(key)) else key}:")
+                # a list sits at its key's indent, a mapping one level in (PyYAML's block style)
+                lines.append(_block_yaml(value, indent if isinstance(value, list) else indent + 2))
+            else:
+                empty = "{}" if isinstance(value, dict) else "[]" if isinstance(value, list) else _scalar(value)
+                name = key if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*", str(key)) else _scalar(key)
+                lines.append(f"{pad}{name}: {empty}")
+    else:
+        for item in data:
+            if isinstance(item, (dict, list)) and item:
+                nested = _block_yaml(item, indent + 2)
+                lines.append(f"{pad}- {nested[indent + 2:]}")
+            else:
+                empty = "{}" if isinstance(item, dict) else "[]" if isinstance(item, list) else _scalar(item)
+                lines.append(f"{pad}- {empty}")
+    return "\n".join(lines)
 
 
 def _md(description: str, body: str) -> str:

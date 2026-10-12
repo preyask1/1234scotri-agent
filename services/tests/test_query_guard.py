@@ -149,3 +149,21 @@ def test_canonicalize_treats_different_statements_as_distinct():
     a = canonicalize_for_cache("SELECT * FROM acme_prod.gold.a")
     b = canonicalize_for_cache("SELECT * FROM acme_prod.gold.b")
     assert a != b
+
+
+def test_canonicalize_keeps_string_literals_case_sensitive():
+    """Databricks compares strings case-sensitively, so these are two different queries and must
+    never share a cache entry (they did, until 2026-10-11)."""
+    a = canonicalize_for_cache("SELECT * FROM t WHERE region = 'North'")
+    b = canonicalize_for_cache("SELECT * FROM t WHERE region = 'NORTH'")
+    assert a != b
+
+
+def test_canonicalize_keeps_whitespace_inside_literals_and_normalizes_outside():
+    assert canonicalize_for_cache("SELECT 'a  b'") != canonicalize_for_cache("SELECT 'a b'")
+    assert canonicalize_for_cache("SELECT  x FROM t WHERE n = 'It''s'") == \
+        canonicalize_for_cache("select x\nfrom t where n = 'It''s'")
+
+
+def test_canonicalize_unterminated_quote_is_kept_verbatim():
+    assert canonicalize_for_cache("SELECT 'Abc") == "select 'Abc"

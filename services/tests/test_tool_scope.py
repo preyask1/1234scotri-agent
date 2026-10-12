@@ -105,7 +105,7 @@ def test_everything_else_is_denied(root, cmd):
 
 def test_powershell_is_denied_and_other_tools_pass(root):
     assert check_tool_call("PowerShell", {"command": "Get-ChildItem"}, root) is not None
-    assert check_tool_call("Read", {"file_path": f"{root}/services/.env"}, root) is None
+    assert check_tool_call("Read", {"file_path": f"{root}/docs/ai/repo-registry.md"}, root) is None
     assert check_tool_call("Write", {"file_path": "services/app/cli.py"}, root) is not None
     assert check_tool_call("NotebookEdit", {"notebook_path": "scratch/n.ipynb"}, root) is None
 
@@ -139,3 +139,34 @@ def test_query_options_carry_the_hook_and_deny_powershell(monkeypatch, root):
     assert "PowerShell" in opts.disallowed_tools and "Agent" in opts.disallowed_tools
     [matcher] = opts.hooks["PreToolUse"]
     assert matcher.matcher is None and len(matcher.hooks) == 1
+
+
+# --- file reads (secrets, other callers' data, unredacted mirror) --------------------------------
+
+@pytest.mark.parametrize("tool,tool_input", [
+    ("Read", {"file_path": "services/.env"}),
+    ("Read", {"file_path": "services/.env.bak-20261006-190107"}),
+    ("Read", {"file_path": "services/FRONTEND_AUTH.md"}),
+    ("Read", {"file_path": "services/mirror/mirror-active/adf/main/pipeline/p.json"}),
+    ("Read", {"file_path": "services/data/history.db"}),
+    ("Read", {"file_path": "services/logs/scotri-cli.log"}),
+    ("Grep", {"pattern": "AccountKey", "path": "services/mirror/mirror-active"}),
+    ("Glob", {"pattern": "services/mirror/**/*.tmdl"}),
+    ("Glob", {"pattern": "mirror-active/**/*.json", "path": "services/mirror"}),
+    ("Glob", {"pattern": "**/*.json", "path": "services/mirror"}),
+])
+def test_reads_of_secrets_and_the_raw_mirror_are_denied(root, tool, tool_input):
+    assert check_tool_call(tool, tool_input, root) is not None
+
+
+@pytest.mark.parametrize("tool,tool_input", [
+    ("Read", {"file_path": "services/.env.example"}),
+    ("Read", {"file_path": "scratch/uploads/j/brd.pdf"}),
+    ("Read", {"file_path": "docs/ai/repo-registry.md"}),
+    ("Grep", {"pattern": "gold"}),                      # no path: the workspace, gitignore applies
+    ("Grep", {"pattern": "gold", "path": "docs/ai"}),
+    ("Glob", {"pattern": "**/*.md"}),
+    ("Glob", {"pattern": "*.md", "path": "scratch"}),
+])
+def test_ordinary_reads_pass(root, tool, tool_input):
+    assert check_tool_call(tool, tool_input, root) is None

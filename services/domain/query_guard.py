@@ -119,9 +119,22 @@ def assert_select_only(statement: str) -> None:
 def canonicalize_for_cache(statement: str) -> str:
     """Normalize a SQL/DAX statement for cache-key purposes (query-governor SKILL.md).
 
-    Collapses whitespace and lowercases — good enough to catch "the same query, differently
-    formatted" without needing a real SQL/DAX parser. Deliberately conservative: two statements
-    that differ only in case/whitespace are almost certainly the same query; anything else is left
-    distinct rather than risk conflating two different queries into one cache entry.
+    Collapses whitespace and lowercases OUTSIDE quoted literals — good enough to catch "the same
+    query, differently formatted" without needing a real SQL/DAX parser. A quoted literal is kept
+    byte for byte: Databricks compares strings case-sensitively, so `WHERE r = 'North'` and
+    `WHERE r = 'NORTH'` are different queries and must never share a cache entry (they did, until
+    2026-10-11). An unterminated quote keeps the rest of the text as-is, which only ever makes two
+    keys more distinct, never less.
     """
-    return re.sub(r"\s+", " ", statement).strip().lower()
+    parts = _QUOTED_OR_NOT.findall(statement)
+    out = [p if p[:1] in "'\"`" else re.sub(r"\s+", " ", p).lower() for p in parts]
+    return "".join(out).strip()
+
+
+# A single-, double- or backtick-quoted run (doubled quote = escaped quote, as SQL and DAX write
+# it; a backslash escape is accepted too), an unterminated quote to the end, or a run of anything
+# else.
+_QUOTED_OR_NOT = re.compile(
+    r"'(?:[^'\\]|\\.|'')*(?:'|$)|\"(?:[^\"\\]|\\.|\"\")*(?:\"|$)|`(?:[^`]|``)*(?:`|$)|[^'\"`]+",
+    re.DOTALL,
+)

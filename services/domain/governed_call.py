@@ -93,7 +93,9 @@ def run_governed(
     ways: for a call whose real result is a side effect on local disk (a Jira attachment download),
     where a cache hit would report a file that may no longer be there.
     """
-    cache_key = canonicalize_for_cache(cache_key_input)
+    # Namespaced by backend: every backend shares one Redis prefix, and the Databricks key
+    # (`<catalog>:<sql>`) and the DAX key (`<workspace>:<model>:<dax>:<role>`) carry no tag of their own.
+    cache_key = f"{backend.value}:{canonicalize_for_cache(cache_key_input)}"
 
     cached = cache.get(cache_key) if use_cache else None
     if cached is not None:

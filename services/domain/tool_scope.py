@@ -18,6 +18,11 @@ The rules are allowlists, so a path or command nobody thought about is refused, 
   is what the skills document; the agent reads files with its Read/Grep/Glob tools. The ops-only
   commands (OPS_ONLY_COMMANDS) are refused here as well as by `batch`.
 - PowerShell (the Windows shell tool) is refused outright: it would sidestep the Bash rules.
+- File-reading tools (Read/Grep/Glob/NotebookRead) may not target the places that hold secrets or
+  bypass redaction (READ_DENIED_PATHS, plus any `.env*` file but `.env.example`): the mirror is read
+  through `mirror-read`/`mirror-grep`, which redact; `services/.env` holds every credential; the
+  history DB and logs hold other callers' work. Grep/Glob with no path search the workspace, where
+  ripgrep already skips these gitignored folders.
 """
 from __future__ import annotations
 
@@ -31,6 +36,9 @@ WRITABLE_DIRS = ("scratch", "proposals", "investigations")
 WRITABLE_FILES = ("docs/ai/client/lineage-map.md",)
 OPS_ONLY_COMMANDS = {"governor-reset", "sync-run-once", "artifacts-purge"}
 DENIED_TOOLS = {"PowerShell"}
+FILE_READ_TOOLS = {"Read": ("file_path",), "NotebookRead": ("notebook_path",),
+                   "Grep": ("path",), "Glob": ("path", "pattern")}
+READ_DENIED_PATHS = ("services/mirror", "services/data", "services/logs", "services/FRONTEND_AUTH.md")
 _SEPARATORS = {"&&", ";"}
 _INTERPRETERS = (".venv/bin/python", ".venv/bin/python3", ".venv/Scripts/python.exe")
 
@@ -68,6 +76,26 @@ def check_write_path(file_path: str, root: str) -> str | None:
     return (f"writes are limited to {', '.join(d + '/' for d in WRITABLE_DIRS)} and "
             f"{', '.join(WRITABLE_FILES)} in this workspace (OPEN_ITEMS.md #28); "
             f"{file_path!r} is outside them")
+
+
+def _is_env_file(path: str) -> bool:
+    name = os.path.basename(path)
+    return (name == ".env" or name.startswith(".env.")) and not name.endswith(".example")
+
+
+def check_read_path(file_path: str, root: str) -> str | None:
+    """None if a read tool may look at `file_path` in an engagement rooted at `root`, else the reason.
+    A glob pattern is checked by its fixed leading part (`services/mirror/**/*.tmdl` -> services/mirror)."""
+    if not isinstance(file_path, str) or not file_path:
+        return None
+    fixed = file_path.split("*", 1)[0].split("?", 1)[0].split("[", 1)[0].split("{", 1)[0]
+    if not fixed.strip():
+        return None
+    target = _resolve(fixed, root)
+    if _is_env_file(target) or any(_under(target, _norm(Path(root) / d)) for d in READ_DENIED_PATHS):
+        return (f"{file_path!r} holds credentials, other callers' data or unredacted mirror content; "
+                f"read the mirror with `mirror-read`/`mirror-grep` and past work with `retrieve`")
+    return None
 
 
 def _scan(command: str) -> tuple[str | None, str]:
@@ -159,6 +187,15 @@ def check_tool_call(tool_name: str, tool_input: dict, root: str) -> str | None:
     """None to let the call through, else the reason to deny it."""
     if tool_name in DENIED_TOOLS:
         return f"{tool_name} is not available in an engagement; use the Bash app.cli commands"
+    if tool_name in FILE_READ_TOOLS:
+        values = [(tool_input or {}).get(f) for f in FILE_READ_TOOLS[tool_name]]
+        if tool_name == "Glob" and isinstance(values[1], str) and not os.path.isabs(values[1]):
+            values.append(os.path.join(values[0] if isinstance(values[0], str) and values[0] else root, values[1]))
+        for value in values:
+            reason = check_read_path(value, root)
+            if reason:
+                return reason
+        return None
     if tool_name in FILE_WRITE_TOOLS:
         return check_write_path((tool_input or {}).get(FILE_WRITE_TOOLS[tool_name]), root)
     if tool_name == "Bash":
